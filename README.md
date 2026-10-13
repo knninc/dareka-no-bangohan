@@ -6,6 +6,8 @@
 
 特に目的はありません。
 
+**公開中：** https://dareka-no-bangohan.super-bonus-c87c.workers.dev
+
 ---
 
 ## もくじ
