@@ -33,13 +33,16 @@ sources:
     url: https://en.wikipedia.org/wiki/Stir-fried_tomato_and_scrambled_eggs
     note: トマトと卵の炒め物が中国の家庭料理として親しまれていることについて
 
-# 写真は実際に撮ったものだけを photos/ に置いて、ここに書く。
-# photos:
-#   - src: ./photos/a-1.jpg
-#     alt: 台所Aの食卓。八宝菜、トマたま、冷奴が並んでいる
-#     kitchen: a
-#     cover: true
-photos: []
+# 写真は実際に撮ったものだけを npm run import-photos で取り込んで、ここに書く。
+photos:
+  - src: ./photos/a-1.jpg
+    alt: 台所Aの食卓。白いテーブルに、赤い器のトマたま、しらすと大葉をのせた冷奴、八宝菜、ごはんが並んでいる
+    kitchen: a
+    caption: 背景の映り込みを ChatGPT で消しています
+  - src: ./photos/b-1.jpg
+    alt: 台所Bの食卓。赤いランチョンマットの上に、トマたま、八宝菜、しらすと梅をのせた冷奴、箸置きと箸が並んでいる
+    kitchen: b
+    cover: true
 ---
 
 ## 今夜の誰か
@@ -62,10 +65,12 @@ photos: []
 
 便利な市販調味料を使うことも、日本的な冷奴が並ぶことも、この人の今夜にはよく似合います。
 
-<!--
 ## ふたりの食卓
-（実際に作って食べた感想をここに書く。写真は frontmatter の photos へ）
+
+**台所A**　とま玉失敗して涙　次は焦がさない
 
 ## 編集後記
-（自由な感想、発見、失敗など）
--->
+
+卵を調子に乗って焦がさない。
+
+次やってみるアイデア：自己破産定食（業務スーパーしばり）

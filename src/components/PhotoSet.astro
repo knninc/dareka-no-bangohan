@@ -129,10 +129,7 @@ const split = byKitchen.filter((k) => k.photos.length > 0).length >= 2;
     background: var(--paper-2);
   }
 
-  .photoset--split figure :global(img) {
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-  }
+  /* 記録の写真は切り抜かず、元の比率のまま並べる */
 
   figcaption {
     display: flex;

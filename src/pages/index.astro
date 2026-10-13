@@ -89,7 +89,7 @@ const manifesto: string[][] = [
 
       {
         latest && latestGenre && (
-          <div class="cover__feature" data-genre={latest.data.genre}>
+          <div class="cover__feature" data-genre={latest.data.genre} data-visual={latestCover ? 'photo' : 'plate'}>
             <div class="cover__headline">
               <p class="cover__tag">今週の誰か</p>
               <a href={issueUrl(latest)} class="cover__title-link">
@@ -392,12 +392,31 @@ const manifesto: string[][] = [
     min-inline-size: 0;
   }
 
+  /* 記録の写真は切り抜かず、元の比率のまま見せる */
   .cover__visual :global(.cover__photo img),
   .cover__visual :global(img.cover__photo) {
     inline-size: 100%;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
+    block-size: auto;
     border: 1px solid var(--ink);
+  }
+
+  /* 表紙が写真のとき（スマホ）：写真を横幅いっぱいに、その下に縦組みの題 */
+  .cover__feature[data-visual='photo'] {
+    grid-template-areas:
+      'visual visual'
+      'caption headline';
+    align-items: start;
+  }
+
+  .cover__feature[data-visual='photo'] .cover__caption {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: var(--space-4);
+  }
+
+  .cover__feature[data-visual='photo'] .cover__caption :global(.section-link) {
+    margin-inline-start: 0;
   }
 
   .cover__caption {
@@ -487,7 +506,8 @@ const manifesto: string[][] = [
       padding-inline-start: 2.5em;
     }
 
-    .cover__feature {
+    .cover__feature,
+    .cover__feature[data-visual='photo'] {
       grid-template-columns: minmax(0, 1fr) auto;
       grid-template-areas:
         'caption visual headline';
@@ -520,6 +540,29 @@ const manifesto: string[][] = [
 
     .cover__sub {
       font-size: 1.125rem;
+    }
+
+    /* 表紙が写真のとき（PC）：写真を大きく、その下にジャンル・副題・リンク */
+    .cover__feature[data-visual='photo'] {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'visual headline'
+        'caption headline';
+      align-items: start;
+      row-gap: var(--space-5);
+    }
+
+    .cover__feature[data-visual='photo'] .cover__visual {
+      max-inline-size: none;
+      justify-self: stretch;
+    }
+
+    .cover__feature[data-visual='photo'] .cover__caption {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      align-self: start;
     }
 
     .cover__headline :global(.cover__title) {
