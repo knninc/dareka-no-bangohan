@@ -1,0 +1,154 @@
+---
+/**
+ * フッター。雑誌の「奥付」の体裁。
+ */
+import { SITE } from '../site.config';
+import { getIssues } from '../lib/issues';
+import { dateJa } from '../lib/format';
+import Logo from './Logo.astro';
+
+const issues = await getIssues();
+const first = issues.at(-1);
+const thisYear = new Date().getFullYear();
+const startYear = first ? first.data.date.getUTCFullYear() : thisYear;
+const years = startYear === thisYear ? `${startYear}` : `${startYear}–${thisYear}`;
+
+const rows: [string, string][] = [
+  ['創刊', first ? dateJa(first.data.date, false) : '準備中'],
+  ['刊行', '毎週（月に四回）'],
+  ['発行', 'ふたり（別々の台所から）'],
+  ['献立', 'GPT'],
+  ['調理', '私たち'],
+  ['目的', '特に目的はありません'],
+];
+---
+
+<footer class="colophon frame">
+  <div class="colophon__inner">
+    <section class="colophon__okuzuke" aria-labelledby="okuzuke-title">
+      <h2 id="okuzuke-title" class="colophon__label">奥付</h2>
+      <p class="colophon__name"><Logo /></p>
+      <dl class="colophon__list">
+        {
+          rows.map(([k, v]) => (
+            <div>
+              <dt>{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <nav class="colophon__nav" aria-label="フッターメニュー">
+      <ul>
+        <li><a href="/">表紙</a></li>
+        <li><a href="/archive/">バックナンバー</a></li>
+        <li><a href="/about/">この活動について</a></li>
+        <li><a href="/rss.xml">RSS</a></li>
+      </ul>
+      <p class="colophon__copy mono">© {years} {SITE.name}</p>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .colophon {
+    margin-block-start: var(--space-9);
+    padding-block: 0 var(--space-7);
+  }
+
+  .colophon__inner {
+    display: grid;
+    gap: var(--space-6);
+    padding-block-start: var(--space-6);
+    border-block-start: 1px solid var(--ink);
+  }
+
+  .colophon__okuzuke {
+    max-inline-size: 26rem;
+    padding: var(--space-5);
+    border: 1px solid var(--ink);
+    background: color-mix(in srgb, var(--paper-2) 55%, transparent);
+  }
+
+  .colophon__label {
+    margin-block-end: var(--space-3);
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.4em;
+    color: var(--ink-2);
+  }
+
+  .colophon__name {
+    padding-block-end: var(--space-3);
+    margin-block-end: var(--space-3);
+    border-block-end: 1px solid var(--ink);
+    font-size: 1.25rem;
+  }
+
+  .colophon__list {
+    display: grid;
+    gap: 0.15rem;
+    font-size: var(--fs-md);
+  }
+
+  .colophon__list div {
+    display: grid;
+    grid-template-columns: 3.6em 1fr;
+    gap: var(--space-3);
+  }
+
+  .colophon__list dt {
+    font-family: var(--font-gothic);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.1em;
+    color: var(--ink-2);
+    text-align-last: justify;
+    padding-block-start: 0.15em;
+  }
+
+  .colophon__list div:last-child dd {
+    color: var(--shu-text);
+  }
+
+  .colophon__nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    list-style: none;
+    font-family: var(--font-gothic);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.1em;
+  }
+
+  .colophon__nav a {
+    text-decoration: none;
+  }
+
+  .colophon__nav a:hover {
+    text-decoration: underline;
+  }
+
+  .colophon__copy {
+    margin-block-start: var(--space-5);
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 48rem) {
+    .colophon__inner {
+      grid-template-columns: auto 1fr;
+      align-items: end;
+      gap: var(--space-7);
+    }
+    .colophon__nav {
+      justify-self: end;
+      text-align: end;
+    }
+    .colophon__nav ul {
+      justify-content: flex-end;
+    }
+  }
+</style>

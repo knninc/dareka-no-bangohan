@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArchiveView from '../../components/ArchiveView.astro';
+import { GENRES, type Genre } from '../../lib/genres';
+import { getIssues } from '../../lib/issues';
+
+export function getStaticPaths() {
+  return GENRES.map((genre) => ({ params: { genre: genre.id }, props: { genre } }));
+}
+
+interface Props {
+  genre: Genre;
+}
+
+const { genre } = Astro.props;
+const all = await getIssues();
+---
+
+<BaseLayout
+  title={`「${genre.name}」の晩ごはん`}
+  description={`「週刊・誰かの晩ごはん」のジャンル「${genre.name}」。${genre.lead}${genre.rule}`}
+  current="archive"
+>
+  <ArchiveView all={all} genre={genre} />
+</BaseLayout>

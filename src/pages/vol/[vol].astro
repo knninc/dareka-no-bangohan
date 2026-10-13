@@ -1,0 +1,1143 @@
+---
+/**
+ * 号の詳細ページ。/vol/001/
+ * 欄（01 今夜の誰か … 06 編集後記）は、データがあるものだけを出し、番号は詰めて振る。
+ */
+import { Picture, getImage } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PlateMenu from '../../components/PlateMenu.astro';
+import PhotoSet from '../../components/PhotoSet.astro';
+import GenreLabel from '../../components/GenreLabel.astro';
+import SectionLink from '../../components/SectionLink.astro';
+import { SITE } from '../../site.config';
+import { genreById } from '../../lib/genres';
+import {
+  getIssues,
+  issueSections,
+  issueUrl,
+  issueDescription,
+  coverPhoto,
+  hasRecord,
+  neighbors,
+  type Issue,
+} from '../../lib/issues';
+import { pad3, dateJa, isoDate, kanjiNum } from '../../lib/format';
+import { tate } from '../../lib/tate';
+
+export async function getStaticPaths() {
+  const issues = await getIssues();
+  return issues.map((issue) => ({ params: { vol: pad3(issue.data.vol) }, props: { issue } }));
+}
+
+interface Props {
+  issue: Issue;
+}
+
+const { issue } = Astro.props;
+const d = issue.data;
+const { html } = issueSections(issue);
+const genre = genreById(d.genre);
+const cover = coverPhoto(issue);
+const recorded = hasRecord(issue);
+const { newer, older } = await neighbors(issue);
+const [latest] = await getIssues();
+const isLatest = latest?.id === issue.id;
+
+const recipeHasDetail = d.recipes.some((r) => r.ingredients?.length || r.steps?.length);
+const showRecipe = d.recipes.length > 0 || Boolean(html.recipe);
+const showTable = d.photos.length > 0 || Boolean(html.table);
+
+type Kind = 'imagined' | 'menu' | 'note' | 'source' | 'record';
+const KIND_LABEL: Record<Kind, string> = {
+  imagined: '想像',
+  menu: '献立',
+  note: '解説',
+  source: '資料',
+  record: '記録',
+};
+
+const sections = (
+  [
+    html.someone && { id: 'someone', title: '今夜の誰か', kind: 'imagined' },
+    { id: 'menu', title: '今夜の献立', kind: 'menu' },
+    html.why && { id: 'why', title: 'なぜこの料理なのか', kind: 'note' },
+    showRecipe && { id: 'recipe', title: 'レシピ', kind: 'source' },
+    showTable && { id: 'table', title: 'ふたりの食卓', kind: 'record' },
+    html.afterword && { id: 'afterword', title: '編集後記', kind: 'record' },
+  ].filter(Boolean) as { id: string; title: string; kind: Kind }[]
+).map((s, i) => ({ ...s, no: String(i + 1).padStart(2, '0') }));
+
+const lines = d.titleLines?.length ? d.titleLines : [d.title];
+const titleHtml = lines.map((l) => `<span class="opening__line">${tate(l)}</span>`).join('');
+
+// OGP 画像：表紙写真があればそれを、なければ号ごとに生成した画像を使う
+const ogImage = cover
+  ? (await getImage({ src: cover.src, width: 1200, height: 630, fit: 'cover', format: 'jpg' })).src
+  : `/og/${pad3(d.vol)}.png`;
+
+const pageTitle = `VOL.${pad3(d.vol)} ${d.title}`;
+const description = issueDescription(issue);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: d.title,
+  alternativeHeadline: d.subtitle,
+  datePublished: isoDate(d.date),
+  articleSection: genre.name,
+  inLanguage: 'ja',
+  url: new URL(issueUrl(issue), Astro.site).href,
+  image: new URL(ogImage, Astro.site).href,
+  isPartOf: { '@type': 'Periodical', name: SITE.name },
+  issueNumber: d.vol,
+  description,
+};
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={description}
+  image={ogImage}
+  imageAlt={cover ? cover.alt : `${pageTitle}（${SITE.name}）`}
+  type="article"
+  publishedTime={isoDate(d.date)}
+  current={isLatest ? 'latest' : 'archive'}
+  jsonLd={jsonLd}
+>
+  <article class="issue" data-genre={d.genre}>
+    <!-- ============ 扉 ============ -->
+    <header class="opening frame">
+      <div class="opening__grid">
+        <div class="opening__meta">
+          <p class="opening__vol">
+            <span class="opening__vol-label mono">VOL.</span><span class="opening__vol-no">{pad3(d.vol)}</span>
+          </p>
+          <dl class="opening__facts">
+            <div>
+              <dt>ジャンル</dt>
+              <dd><GenreLabel genre={d.genre} link /></dd>
+            </div>
+            <div>
+              <dt>開催日</dt>
+              <dd><time datetime={isoDate(d.date)}>{dateJa(d.date)}</time></dd>
+            </div>
+            <div>
+              <dt>記録</dt>
+              <dd>
+                <span class:list={['status', recorded ? 'is-recorded' : 'is-pending']}>
+                  {recorded ? '記録あり' : '記録待ち'}
+                </span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <h1 class="opening__title" set:html={titleHtml} />
+
+        {d.subtitle && <p class="opening__sub">{d.subtitle}</p>}
+
+        <div class="opening__visual">
+          {
+            cover ? (
+              <figure class="opening__photo">
+                <Picture
+                  src={cover.src}
+                  alt={cover.alt}
+                  widths={[480, 800, 1200]}
+                  sizes="(min-width: 60rem) 32rem, 90vw"
+                  formats={['avif', 'webp']}
+                  loading="eager"
+                />
+                {cover.caption && <figcaption>{cover.caption}</figcaption>}
+              </figure>
+            ) : (
+              <PlateMenu menu={d.menu} />
+            )
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ 目次 ============ -->
+    <nav class="toc frame" aria-labelledby="toc-title">
+      <div class="toc__inner">
+        <h2 id="toc-title" class="toc__title">この号の目次</h2>
+        <ol class="toc__list">
+          {
+            sections.map((s) => (
+              <li>
+                <a href={`#${s.id}`}>
+                  <span class="toc__no mono">{s.no}</span>
+                  <span class="toc__name">{s.title}</span>
+                  <span class="kind" data-kind={s.kind}>
+                    {KIND_LABEL[s.kind]}
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="toc__legend">
+          <span class="kind" data-kind="imagined">想像</span>
+          は、この号の「誰か」についての設定です。実在の人物ではありません。
+          <span class="kind" data-kind="record">記録</span>
+          は、実際に作って食べたときの写真と感想です。
+        </p>
+      </div>
+    </nav>
+
+    <!-- ============ 本文 ============ -->
+    {
+      sections.map((sec) => (
+        <section id={sec.id} class="sec frame" aria-labelledby={`${sec.id}-title`}>
+          <div class="sec__grid">
+            <header class="sec__head">
+              <span class="sec__no mono" aria-hidden="true">
+                {sec.no}
+              </span>
+              <h2 id={`${sec.id}-title`} class="sec__title">
+                {sec.title}
+              </h2>
+              <span class="kind" data-kind={sec.kind}>
+                {KIND_LABEL[sec.kind]}
+              </span>
+            </header>
+
+            <div class="sec__body">
+              {sec.id === 'someone' && <div class="prose prose--lead" set:html={html.someone} />}
+
+              {sec.id === 'menu' && (
+                <div class="oshinagaki">
+                  <p class="oshinagaki__stamp" aria-hidden="true">
+                    献立
+                  </p>
+                  <ol class="oshinagaki__list">
+                    {d.menu.map((m, i) => (
+                      <li>
+                        <span class="oshinagaki__no" aria-hidden="true">
+                          {kanjiNum(i + 1)}
+                        </span>
+                        <span class="oshinagaki__name">{m.name}</span>
+                        {m.note && <span class="oshinagaki__note">{m.note}</span>}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {sec.id === 'why' && <div class="prose" set:html={html.why} />}
+
+              {sec.id === 'recipe' && (
+                <div class="recipes">
+                  {!recipeHasDetail && d.recipes.length > 0 && (
+                    <p class="recipes__empty">材料と作り方の記録は、まだありません。参照先は次のとおりです。</p>
+                  )}
+                  {d.recipes.map((r) => (
+                    <div class="recipe">
+                      <h3 class="recipe__dish">
+                        {r.dish}
+                        {r.servings && <span class="recipe__servings">（{r.servings}）</span>}
+                      </h3>
+                      {r.ingredients && r.ingredients.length > 0 && (
+                        <div class="recipe__block">
+                          <h4 class="recipe__label">材料</h4>
+                          <ul class="ingredients">
+                            {r.ingredients.map((ing) =>
+                              typeof ing === 'string' ? (
+                                <li>
+                                  <span>{ing}</span>
+                                </li>
+                              ) : (
+                                <li>
+                                  <span>{ing.name}</span>
+                                  {ing.amount && <span class="ingredients__amount">{ing.amount}</span>}
+                                </li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                      {r.steps && r.steps.length > 0 && (
+                        <div class="recipe__block">
+                          <h4 class="recipe__label">作り方</h4>
+                          <ol class="steps">
+                            {r.steps.map((st) => (
+                              <li>{st}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      )}
+                      {r.note && <p class="recipe__note">{r.note}</p>}
+                      {r.sources && r.sources.length > 0 && (
+                        <ul class="recipe__sources">
+                          {r.sources.map((src) => (
+                            <li>
+                              <span class="recipe__sources-label">参照</span>
+                              <span>
+                                {src.url ? (
+                                  <a href={src.url} rel="noopener">
+                                    {src.title}
+                                  </a>
+                                ) : (
+                                  src.title
+                                )}
+                                {src.publisher && <span class="recipe__publisher">（{src.publisher}）</span>}
+                                {src.note && <span class="recipe__publisher"> — {src.note}</span>}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                  {html.recipe && <div class="prose" set:html={html.recipe} />}
+                </div>
+              )}
+
+              {sec.id === 'table' && (
+                <div class="table">
+                  {d.photos.length > 0 && <PhotoSet photos={d.photos} />}
+                  {html.table && <div class="prose" set:html={html.table} />}
+                </div>
+              )}
+
+              {sec.id === 'afterword' && <div class="prose prose--small" set:html={html.afterword} />}
+            </div>
+          </div>
+        </section>
+      ))
+    }
+
+    <!-- ============ 記録待ち ============ -->
+    {
+      !recorded && (
+        <aside class="pending frame" aria-labelledby="pending-title">
+          <div class="pending__inner">
+            <h2 id="pending-title" class="pending__title">
+              <span class="pending__stamp">記録待ち</span>
+            </h2>
+            <p class="pending__text">この号には、まだ写真と感想がありません。</p>
+            <div class="pending__frames" aria-hidden="true">
+              {Object.values(SITE.kitchens).map((k) => (
+                <div class="pending__frame">
+                  <span class="pending__kitchen">{k}</span>
+                  <span class="pending__none">写真なし</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+      )
+    }
+
+    <!-- ============ 参考資料 ============ -->
+    {
+      d.sources.length > 0 && (
+        <section class="refs frame" aria-labelledby="refs-title">
+          <div class="refs__inner">
+            <h2 id="refs-title" class="refs__title">参考資料</h2>
+            <ol class="refs__list">
+              {d.sources.map((src) => (
+                <li>
+                  {src.url ? (
+                    <a href={src.url} rel="noopener">
+                      {src.title}
+                    </a>
+                  ) : (
+                    <span>{src.title}</span>
+                  )}
+                  {src.publisher && <span class="refs__publisher">（{src.publisher}）</span>}
+                  {src.note && <span class="refs__note">{src.note}</span>}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )
+    }
+  </article>
+
+  <!-- ============ 前後の号 ============ -->
+  <nav class="pager frame" aria-label="前後の号">
+    <div class="pager__inner">
+      <div class="pager__item pager__item--older">
+        {
+          older ? (
+            <a href={issueUrl(older)} rel="prev">
+              <span class="pager__dir mono">← PREV · VOL.{pad3(older.data.vol)}</span>
+              <span class="pager__title">{older.data.title}</span>
+            </a>
+          ) : (
+            <p>
+              <span class="pager__dir mono">← PREV</span>
+              <span class="pager__title pager__title--none">これより前の号はありません。</span>
+            </p>
+          )
+        }
+      </div>
+      <div class="pager__item pager__item--newer">
+        {
+          newer ? (
+            <a href={issueUrl(newer)} rel="next">
+              <span class="pager__dir mono">VOL.{pad3(newer.data.vol)} · NEXT →</span>
+              <span class="pager__title">{newer.data.title}</span>
+            </a>
+          ) : (
+            <p>
+              <span class="pager__dir mono">NEXT →</span>
+              <span class="pager__title pager__title--none">次の号は、まだありません。</span>
+            </p>
+          )
+        }
+      </div>
+    </div>
+    <div class="pager__all">
+      <SectionLink href="/archive/">バックナンバー一覧へ</SectionLink>
+    </div>
+  </nav>
+</BaseLayout>
+
+<style>
+  /* ---------------------------------------------------------------
+     扉
+     --------------------------------------------------------------- */
+  .opening {
+    padding-block: var(--space-6) var(--space-7);
+  }
+
+  .opening__grid {
+    display: grid;
+    grid-template-areas:
+      'meta'
+      'title'
+      'sub'
+      'visual';
+    gap: var(--space-5);
+  }
+
+  .opening__meta {
+    grid-area: meta;
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .opening__vol {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25em;
+    color: var(--g);
+    line-height: 0.85;
+  }
+
+  .opening__vol-label {
+    font-size: var(--fs-sm);
+  }
+
+  .opening__vol-no {
+    font-family: var(--font-mincho);
+    font-weight: 800;
+    font-size: clamp(4.5rem, 22vw, 9rem);
+    letter-spacing: -0.04em;
+  }
+
+  .opening__facts {
+    display: grid;
+    gap: var(--space-1);
+    padding-block: var(--space-3);
+    border-block: 1px solid var(--ink);
+    font-size: var(--fs-sm);
+  }
+
+  .opening__facts div {
+    display: grid;
+    grid-template-columns: 5em 1fr;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .opening__facts dt {
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.2em;
+    color: var(--ink-2);
+  }
+
+  .status {
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.14em;
+    padding: 0.1em 0.6em 0.15em;
+    border: 1px dashed currentColor;
+    color: var(--ink-2);
+  }
+
+  .status.is-recorded {
+    border-style: solid;
+    color: var(--shu-text);
+  }
+
+  .opening__title {
+    grid-area: title;
+    font-size: clamp(1.75rem, 1.2rem + 3vw, 2.75rem);
+    line-height: 1.45;
+    letter-spacing: 0.04em;
+    word-break: normal;
+  }
+
+  .opening__title :global(.opening__line) {
+    display: block;
+  }
+
+  .opening__sub {
+    grid-area: sub;
+    font-size: var(--fs-lg);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  .opening__sub::before {
+    content: '──';
+    margin-inline-end: 0.4em;
+    color: var(--shu);
+    letter-spacing: -0.1em;
+  }
+
+  .opening__visual {
+    grid-area: visual;
+    justify-self: center;
+    inline-size: min(84%, 26rem);
+    margin-block-start: var(--space-4);
+  }
+
+  .opening__photo :global(img) {
+    inline-size: 100%;
+    border: 1px solid var(--ink);
+  }
+
+  .opening__photo figcaption {
+    margin-block-start: var(--space-2);
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 60rem) {
+    .opening {
+      padding-block: var(--space-7) var(--space-8);
+    }
+
+    .opening__grid {
+      grid-template-columns: minmax(15rem, 0.8fr) minmax(0, 1.2fr) auto;
+      grid-template-areas:
+        'meta visual title'
+        'sub visual title';
+      grid-template-rows: auto 1fr;
+      column-gap: var(--space-7);
+      align-items: start;
+    }
+
+    .opening__vol {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .opening__vol-no {
+      font-size: clamp(7rem, 11vw, 11rem);
+    }
+
+    .opening__title {
+      writing-mode: vertical-rl;
+      font-feature-settings: 'vpal';
+      font-size: clamp(2.25rem, 1.2rem + 2.2vw, 3.5rem);
+      line-height: 1.4;
+      letter-spacing: 0.08em;
+      max-block-size: 34rem;
+    }
+
+    .opening__title :global(.tcy) {
+      text-combine-upright: all;
+    }
+
+    .opening__title :global(.upright) {
+      text-orientation: upright;
+    }
+
+    .opening__title :global(.opening__line:nth-child(2)) {
+      padding-inline-start: 1em;
+    }
+
+    .opening__title :global(.opening__line:nth-child(3)) {
+      padding-inline-start: 2em;
+    }
+
+    .opening__sub {
+      align-self: end;
+    }
+
+    .opening__visual {
+      align-self: center;
+      margin-block-start: 0;
+      inline-size: min(100%, 30rem);
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     種別のしるし（想像・献立・解説・資料・記録）
+     --------------------------------------------------------------- */
+  .kind {
+    display: inline-block;
+    padding: 0.05em 0.55em 0.1em;
+    border: 1px solid currentColor;
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    line-height: 1.6;
+    color: var(--ink-2);
+    white-space: nowrap;
+    vertical-align: 0.1em;
+  }
+
+  .kind[data-kind='imagined'] {
+    color: var(--ai);
+    border-style: dashed;
+  }
+
+  .kind[data-kind='record'] {
+    color: var(--paper);
+    background: var(--shu-text);
+    border-color: var(--shu-text);
+  }
+
+  /* ---------------------------------------------------------------
+     目次
+     --------------------------------------------------------------- */
+  .toc__inner {
+    display: grid;
+    gap: var(--space-4);
+    padding-block: var(--space-5);
+    border-block: 1.5px solid var(--ink);
+  }
+
+  .toc__title {
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.3em;
+    color: var(--ink-2);
+  }
+
+  .toc__list {
+    list-style: none;
+    display: grid;
+  }
+
+  .toc__list a {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr auto;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding-block: var(--space-2);
+    border-block-end: 1px dotted var(--rule);
+    text-decoration: none;
+    font-size: var(--fs-md);
+  }
+
+  .toc__no {
+    color: var(--g);
+    font-size: var(--fs-sm);
+  }
+
+  .toc__legend {
+    font-size: var(--fs-xs);
+    line-height: 2;
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 48rem) {
+    .toc__inner {
+      grid-template-columns: 10rem 1fr;
+      column-gap: var(--space-6);
+    }
+    .toc__list {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: var(--space-6);
+    }
+    .toc__legend {
+      grid-column: 2;
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     本文の欄
+     --------------------------------------------------------------- */
+  .sec {
+    padding-block: var(--space-8) 0;
+    scroll-margin-top: var(--space-4);
+  }
+
+  .sec__grid {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .sec__head {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'no kind'
+      'title title';
+    align-items: end;
+    gap: var(--space-2) var(--space-3);
+    padding-block-end: var(--space-3);
+    border-block-end: 1px solid var(--ink);
+  }
+
+  .sec__no {
+    grid-area: no;
+    font-family: var(--font-mincho);
+    font-weight: 800;
+    font-size: 3rem;
+    line-height: 0.8;
+    letter-spacing: -0.02em;
+    color: var(--g);
+  }
+
+  .sec__head .kind {
+    grid-area: kind;
+    justify-self: start;
+  }
+
+  .sec__title {
+    grid-area: title;
+    font-size: var(--fs-xl);
+  }
+
+  .sec__body {
+    min-inline-size: 0;
+  }
+
+  .prose--lead {
+    font-size: var(--fs-lg);
+    line-height: 2;
+  }
+
+  .prose--small {
+    font-size: var(--fs-md);
+  }
+
+  @media (min-width: 60rem) {
+    .sec__grid {
+      grid-template-columns: 15rem minmax(0, 1fr);
+      column-gap: var(--space-8);
+      align-items: start;
+    }
+
+    .sec__head {
+      position: sticky;
+      top: var(--space-5);
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        'no'
+        'title'
+        'kind';
+      align-items: start;
+      gap: var(--space-3);
+      border-block-end: 0;
+      border-block-start: 1.5px solid var(--ink);
+      padding-block: var(--space-4) 0;
+    }
+
+    .sec__no {
+      font-size: 4.5rem;
+    }
+
+    .sec__body {
+      padding-block-start: var(--space-4);
+      border-block-start: 1px solid var(--rule);
+    }
+  }
+
+  /* ---- 献立（お品書き） ---- */
+  .oshinagaki {
+    position: relative;
+    max-inline-size: 34rem;
+    padding: var(--space-6) var(--space-5) var(--space-5);
+    border: 1px solid var(--ink);
+    outline: 1px solid var(--ink);
+    outline-offset: -6px;
+    background: color-mix(in srgb, var(--paper) 60%, #fff 40%);
+  }
+
+  .oshinagaki__stamp {
+    position: absolute;
+    top: -0.9rem;
+    right: var(--space-5);
+    writing-mode: vertical-rl;
+    padding: 0.5em 0.35em;
+    background: var(--shu);
+    color: var(--paper);
+    font-weight: 800;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.3em;
+    line-height: 1;
+  }
+
+  .oshinagaki__list {
+    list-style: none;
+    display: grid;
+  }
+
+  .oshinagaki__list li {
+    display: grid;
+    grid-template-columns: 2em 1fr;
+    gap: 0 var(--space-3);
+    padding-block: var(--space-3);
+    border-block-end: 1px dotted color-mix(in srgb, var(--ink) 40%, transparent);
+  }
+
+  .oshinagaki__list li:last-child {
+    border-block-end: 0;
+  }
+
+  .oshinagaki__no {
+    color: var(--shu-text);
+    font-weight: 800;
+  }
+
+  .oshinagaki__name {
+    font-size: var(--fs-lg);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  .oshinagaki__note {
+    grid-column: 2;
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+  }
+
+  .oshinagaki__note::before {
+    content: '※ ';
+  }
+
+  /* ---- レシピ ---- */
+  .recipes {
+    display: grid;
+    gap: var(--space-6);
+    max-inline-size: var(--measure);
+  }
+
+  .recipes__empty {
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px dashed var(--rule);
+  }
+
+  .recipe {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .recipe__dish {
+    font-size: var(--fs-lg);
+  }
+
+  .recipe__servings {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  .recipe__label {
+    margin-block-end: var(--space-2);
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.24em;
+    color: var(--ink-2);
+  }
+
+  .ingredients {
+    list-style: none;
+    display: grid;
+  }
+
+  .ingredients li {
+    display: flex;
+    gap: var(--space-2);
+    padding-block: 0.35em;
+    border-block-end: 1px dotted var(--rule);
+  }
+
+  .ingredients__amount {
+    margin-inline-start: auto;
+    font-family: var(--font-gothic);
+    color: var(--ink-2);
+  }
+
+  .steps {
+    list-style: none;
+    counter-reset: step;
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+  }
+
+  .steps li::before {
+    content: counter(step, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--g);
+    padding-block-start: 0.25em;
+  }
+
+  .recipe__note {
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+  }
+
+  .recipe__sources {
+    list-style: none;
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--fs-md);
+  }
+
+  .recipe__sources li {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  .recipe__sources-label {
+    flex: none;
+    font-family: var(--font-gothic);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    padding: 0 0.5em;
+    border: 1px solid currentColor;
+    align-self: flex-start;
+    margin-block-start: 0.35em;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+
+  .recipe__sources a {
+    color: var(--ai);
+  }
+
+  .recipe__publisher {
+    color: var(--ink-2);
+    font-size: var(--fs-sm);
+  }
+
+  .table {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  /* ---------------------------------------------------------------
+     記録待ち
+     --------------------------------------------------------------- */
+  .pending {
+    padding-block: var(--space-8) 0;
+  }
+
+  .pending__inner {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border: 1px dashed color-mix(in srgb, var(--ink) 45%, transparent);
+  }
+
+  .pending__stamp {
+    display: inline-block;
+    padding: 0.2em 0.7em 0.25em;
+    border: 1.5px solid var(--ink-2);
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.3em;
+    color: var(--ink-2);
+    rotate: -3deg;
+  }
+
+  .pending__text {
+    font-size: var(--fs-md);
+    color: var(--ink-2);
+  }
+
+  .pending__frames {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    max-inline-size: 30rem;
+  }
+
+  .pending__frame {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--rule);
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent 0 8px,
+      color-mix(in srgb, var(--ink) 5%, transparent) 8px 9px
+    );
+  }
+
+  .pending__kitchen {
+    padding: 0.3em 0.6em;
+    font-family: var(--font-gothic);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    color: var(--ink-2);
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .pending__none {
+    display: grid;
+    place-items: center;
+    font-family: var(--font-gothic);
+    font-size: 0.6875rem;
+    letter-spacing: 0.2em;
+    color: var(--ink-3);
+  }
+
+  @media (min-width: 60rem) {
+    .pending__inner {
+      grid-template-columns: 15rem 1fr;
+      column-gap: var(--space-8);
+      align-items: start;
+    }
+    .pending__title {
+      grid-row: span 2;
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     参考資料
+     --------------------------------------------------------------- */
+  .refs {
+    padding-block: var(--space-8) 0;
+  }
+
+  .refs__inner {
+    display: grid;
+    gap: var(--space-3);
+    padding-block-start: var(--space-4);
+    border-block-start: 1px solid var(--ink);
+  }
+
+  .refs__title {
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.3em;
+    color: var(--ink-2);
+  }
+
+  .refs__list {
+    display: grid;
+    gap: var(--space-2);
+    padding-inline-start: 1.6em;
+    font-size: var(--fs-sm);
+    line-height: 1.8;
+  }
+
+  .refs__list li::marker {
+    font-family: var(--font-mono);
+    color: var(--ink-2);
+  }
+
+  .refs__list a {
+    color: var(--ai);
+  }
+
+  .refs__publisher {
+    color: var(--ink-2);
+  }
+
+  .refs__note {
+    display: block;
+    color: var(--ink-2);
+    font-size: var(--fs-xs);
+  }
+
+  @media (min-width: 60rem) {
+    .refs__inner {
+      grid-template-columns: 15rem minmax(0, 1fr);
+      column-gap: var(--space-8);
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     前後の号
+     --------------------------------------------------------------- */
+  .pager {
+    padding-block: var(--space-9) 0;
+  }
+
+  .pager__inner {
+    display: grid;
+    border-block: 1.5px solid var(--ink);
+  }
+
+  .pager__item a,
+  .pager__item p {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-5) 0;
+    text-decoration: none;
+  }
+
+  .pager__item + .pager__item {
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .pager__dir {
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+
+  .pager__title {
+    font-weight: 800;
+    font-size: var(--fs-md);
+  }
+
+  .pager__title--none {
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  .pager__all {
+    margin-block-start: var(--space-5);
+  }
+
+  @media (min-width: 48rem) {
+    .pager__inner {
+      grid-template-columns: 1fr 1fr;
+    }
+    .pager__item + .pager__item {
+      border-block-start: 0;
+      border-inline-start: 1px solid var(--rule);
+    }
+    .pager__item--newer a,
+    .pager__item--newer p {
+      text-align: end;
+      padding-inline-start: var(--space-5);
+    }
+    .pager__item--older a,
+    .pager__item--older p {
+      padding-inline-end: var(--space-5);
+    }
+  }
+</style>

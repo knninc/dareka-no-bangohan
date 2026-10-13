@@ -1,0 +1,58 @@
+---
+/** トンボ（印刷の裁ち落とし線）。親要素を position: relative にして使う */
+---
+
+<span class="crop" aria-hidden="true">
+  <span class="crop__c crop__c--tl"></span>
+  <span class="crop__c crop__c--tr"></span>
+  <span class="crop__c crop__c--bl"></span>
+  <span class="crop__c crop__c--br"></span>
+</span>
+
+<style>
+  .crop {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .crop__c {
+    position: absolute;
+    inline-size: 18px;
+    block-size: 18px;
+    --l: color-mix(in srgb, var(--ink) 55%, transparent);
+  }
+
+  .crop__c::before,
+  .crop__c::after {
+    content: '';
+    position: absolute;
+    background: var(--l);
+  }
+
+  .crop__c::before {
+    inline-size: 18px;
+    block-size: 1px;
+  }
+
+  .crop__c::after {
+    inline-size: 1px;
+    block-size: 18px;
+  }
+
+  .crop__c--tl { top: -10px; left: -10px; }
+  .crop__c--tl::before { top: 10px; left: -8px; }
+  .crop__c--tl::after { left: 10px; top: -8px; }
+
+  .crop__c--tr { top: -10px; right: -10px; }
+  .crop__c--tr::before { top: 10px; right: -8px; }
+  .crop__c--tr::after { right: 10px; top: -8px; }
+
+  .crop__c--bl { bottom: -10px; left: -10px; }
+  .crop__c--bl::before { bottom: 10px; left: -8px; }
+  .crop__c--bl::after { left: 10px; bottom: -8px; }
+
+  .crop__c--br { bottom: -10px; right: -10px; }
+  .crop__c--br::before { bottom: 10px; right: -8px; }
+  .crop__c--br::after { right: 10px; bottom: -8px; }
+</style>

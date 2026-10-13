@@ -1,0 +1,201 @@
+---
+/**
+ * バックナンバー一覧の1行。総目次の体裁（カードではなく罫線で区切る）。
+ */
+import { Picture } from 'astro:assets';
+import type { Issue } from '../lib/issues';
+import { issueUrl, coverPhoto, hasRecord } from '../lib/issues';
+import { pad3, dateShort, weekdayEn, isoDate } from '../lib/format';
+import GenreLabel from './GenreLabel.astro';
+
+interface Props {
+  issue: Issue;
+  headingLevel?: 'h2' | 'h3';
+}
+const { issue, headingLevel: H = 'h3' } = Astro.props;
+const { vol, date, genre, title, subtitle, menu, photos } = issue.data;
+const photo = coverPhoto(issue) ?? photos[0];
+const recorded = hasRecord(issue);
+---
+
+<article class="row" data-genre={genre}>
+  <p class="row__vol mono" aria-hidden="true">
+    <span class="row__vol-label">VOL.</span><span class="row__vol-no">{pad3(vol)}</span>
+  </p>
+
+  <div class="row__body">
+    <div class="row__meta">
+      <time class="mono" datetime={isoDate(date)}>{date.getUTCFullYear()}.{dateShort(date)} {weekdayEn(date)}</time>
+      <GenreLabel genre={genre} />
+      <span class:list={['row__status', recorded ? 'is-recorded' : 'is-pending']}>
+        {recorded ? '記録あり' : '記録待ち'}
+      </span>
+    </div>
+    <H class="row__title">
+      <a href={issueUrl(issue)}>
+        <span class="visually-hidden">VOL.{pad3(vol)} </span>{title}
+      </a>
+    </H>
+    {subtitle && <p class="row__sub">{subtitle}</p>}
+    <p class="row__menu">
+      <span class="row__menu-label">献立</span>
+      <span>{menu.map((m) => m.name).join('／')}</span>
+    </p>
+  </div>
+
+  {
+    photo && (
+      <Picture
+        class="row__thumb"
+        src={photo.src}
+        alt=""
+        widths={[160, 320]}
+        sizes="(min-width: 48rem) 160px, 96px"
+        formats={['avif', 'webp']}
+        loading="lazy"
+      />
+    )
+  }
+</article>
+
+<style>
+  .row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 4.25rem 1fr;
+    grid-template-areas:
+      'vol body'
+      'thumb body';
+    grid-template-rows: auto 1fr;
+    gap: var(--space-3) var(--space-4);
+    padding-block: var(--space-5);
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .row__vol {
+    grid-area: vol;
+  }
+
+  .row__body {
+    grid-area: body;
+  }
+
+  .row :global(.row__thumb) {
+    grid-area: thumb;
+    align-self: start;
+  }
+
+  .row__vol {
+    display: grid;
+    align-content: start;
+    line-height: 1;
+    color: var(--g);
+  }
+
+  .row__vol-label {
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+  }
+
+  .row__vol-no {
+    font-family: var(--font-mincho);
+    font-weight: 800;
+    font-size: 2.125rem;
+    letter-spacing: -0.02em;
+    margin-block-start: 0.15em;
+  }
+
+  .row__body {
+    display: grid;
+    gap: var(--space-2);
+    min-inline-size: 0;
+  }
+
+  .row__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+
+  .row__status {
+    font-family: var(--font-gothic);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    padding: 0.1em 0.6em 0.15em;
+    border: 1px dashed currentColor;
+  }
+
+  .row__status.is-recorded {
+    border-style: solid;
+    border-color: var(--shu-text);
+    color: var(--shu-text);
+  }
+
+  .row__title {
+    font-size: var(--fs-lg);
+    line-height: 1.5;
+  }
+
+  .row__title a {
+    text-decoration: none;
+  }
+
+  /* 行全体をクリックできるように */
+  .row__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .row:hover .row__title a {
+    color: var(--shu-text);
+  }
+
+  .row__sub {
+    font-size: var(--fs-md);
+    color: var(--ink-2);
+  }
+
+  .row__menu {
+    display: flex;
+    gap: var(--space-3);
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+    color: var(--ink-2);
+  }
+
+  .row__menu-label {
+    flex: none;
+    font-family: var(--font-gothic);
+    font-size: 0.6875rem;
+    letter-spacing: 0.2em;
+    padding-block-start: 0.2em;
+    color: var(--ink-3);
+  }
+
+  .row__thumb :global(img),
+  :global(.row__thumb) {
+    inline-size: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  @media (min-width: 48rem) {
+    .row {
+      grid-template-columns: 7rem 1fr 10rem;
+      grid-template-areas: 'vol body thumb';
+      grid-template-rows: auto;
+      gap: var(--space-5);
+      padding-block: var(--space-6);
+    }
+    .row__vol-no {
+      font-size: 3.25rem;
+    }
+    .row__title {
+      font-size: var(--fs-xl);
+    }
+  }
+</style>

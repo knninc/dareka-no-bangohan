@@ -1,0 +1,112 @@
+---
+import Logo from './Logo.astro';
+import { getIssues, issueUrl } from '../lib/issues';
+
+interface Props {
+  /** 現在のセクション（ナビの aria-current 用） */
+  current?: 'latest' | 'archive' | 'genres' | 'about';
+}
+
+const { current } = Astro.props;
+const [latest] = await getIssues();
+
+const nav = [
+  { key: 'latest', label: '最新号', href: latest ? issueUrl(latest) : '/archive/' },
+  { key: 'archive', label: 'バックナンバー', href: '/archive/' },
+  { key: 'genres', label: '四つの食卓', href: '/#genres' },
+  { key: 'about', label: 'この活動について', href: '/about/' },
+] as const;
+---
+
+<header class="site-header frame">
+  <div class="site-header__inner">
+    <a class="site-header__home" href="/" aria-label="週刊・誰かの晩ごはん トップへ">
+      <Logo />
+    </a>
+    <nav class="site-header__nav" aria-label="メインメニュー">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={current === item.key ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    padding-block: var(--space-3) 0;
+  }
+
+  .site-header__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-5);
+    padding-block-end: var(--space-3);
+    border-block-end: 1px solid var(--ink);
+    box-shadow: 0 3px 0 -2px var(--ink);   /* 二重罫 */
+  }
+
+  .site-header__home {
+    font-size: 1.125rem;
+    text-decoration: none;
+  }
+
+  .site-header__home:hover {
+    color: var(--ink);
+  }
+
+  .site-header__nav {
+    margin-inline: -0.4rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .site-header__nav ul {
+    display: flex;
+    gap: 0;
+    list-style: none;
+    white-space: nowrap;
+  }
+
+  .site-header__nav a {
+    display: block;
+    padding: var(--space-2) 0.4rem;
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    text-decoration: none;
+  }
+
+  /* 横スクロールの枠で切れないように、フォーカス枠は内側に描く */
+  .site-header__nav a:focus-visible {
+    outline-offset: -3px;
+  }
+
+  .site-header__nav a[aria-current='page'] {
+    color: var(--shu-text);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.5em;
+  }
+
+  @media (min-width: 48rem) {
+    .site-header__home {
+      font-size: 1.3125rem;
+    }
+    .site-header__nav a {
+      padding-inline: var(--space-3);
+      letter-spacing: 0.1em;
+    }
+  }
+</style>

@@ -1,0 +1,85 @@
+---
+/**
+ * 題字。朱の「週刊」と明朝の「誰かの晩ごはん」。
+ * size="masthead" で表紙用の大きな題字になる。
+ */
+import { SITE } from '../site.config';
+
+interface Props {
+  size?: 'small' | 'masthead';
+  as?: 'span' | 'h1' | 'p';
+}
+
+const { size = 'small', as: Tag = 'span' } = Astro.props;
+// 題字は「誰かの」「晩ごはん」の2つの塊で折り返す（「ん」だけが落ちないように）
+const [head, tail] = [SITE.masthead.title.slice(0, 3), SITE.masthead.title.slice(3)];
+---
+
+<Tag class:list={['logo', `logo--${size}`]}>
+  <span class="logo__weekly">{SITE.masthead.weekly}</span><span class="visually-hidden">・</span><span class="logo__title"
+    ><span class="logo__chunk">{head}</span><span class="logo__chunk">{tail}</span></span
+  >
+</Tag>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    margin: 0;
+    font-family: var(--font-mincho);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    font-feature-settings: 'palt';
+    white-space: nowrap;
+    text-wrap: nowrap;
+  }
+
+  .logo__weekly {
+    display: inline-grid;
+    place-items: center;
+    padding: 0.32em 0.34em 0.36em;
+    background: var(--shu);
+    color: var(--paper);
+    font-size: 0.62em;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+
+  /* ---- 表紙の題字 ---- */
+  .logo__chunk {
+    display: inline-block;
+  }
+
+  /* 題字の大きさは、親（container-type: inline-size）の幅に合わせる */
+  .logo--masthead {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 0 0.12em;
+    font-size: 21cqi;
+    letter-spacing: -0.02em;
+    white-space: normal;
+    text-wrap: wrap;
+  }
+
+  .logo--masthead .logo__weekly {
+    writing-mode: vertical-rl;
+    font-size: 0.24em;
+    padding: 0.42em 0.3em;
+    letter-spacing: 0.2em;
+    margin-block-start: 0.16em;
+  }
+
+  .logo--masthead .logo__title {
+    line-height: 1.02;
+    word-break: keep-all;
+  }
+
+  @container (min-width: 36rem) {
+    .logo--masthead {
+      font-size: 13cqi;
+    }
+  }
+</style>

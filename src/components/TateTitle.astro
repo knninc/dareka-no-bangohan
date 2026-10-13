@@ -1,0 +1,46 @@
+---
+/**
+ * 号の題を縦書きで組む。titleLines があればその位置で改行（＝改列）する。
+ */
+import { tate } from '../lib/tate';
+
+interface Props {
+  title: string;
+  lines?: string[];
+  as?: 'h1' | 'h2' | 'h3' | 'p';
+  class?: string;
+  id?: string;
+  /** 2列目以降を少しずつ下げる（表紙用） */
+  stagger?: boolean;
+}
+const { title, lines, as: Tag = 'h2', class: className, id, stagger = false } = Astro.props;
+const html = (lines && lines.length ? lines : [title]).map((l) => `<span class="tate-title__line">${tate(l)}</span>`).join('');
+---
+
+<Tag class:list={['tate', 'tate-title', stagger && 'tate-title--stagger', className]} id={id} set:html={html} />
+
+<style>
+  .tate-title {
+    margin: 0;
+    font-weight: 800;
+    line-height: 1.45;
+    letter-spacing: 0.06em;
+    word-break: normal;
+    text-wrap: wrap;
+  }
+
+  .tate-title :global(.tate-title__line) {
+    display: block;
+  }
+
+  /* 2列目以降を少し下げて、雑誌の表紙の見出しのように段差をつける */
+  .tate-title--stagger :global(.tate-title__line:nth-child(2)) {
+    padding-inline-start: 0.8em;
+  }
+  .tate-title--stagger :global(.tate-title__line:nth-child(3)) {
+    padding-inline-start: 1.6em;
+  }
+  .tate-title--stagger :global(.tate-title__line:nth-child(4)) {
+    padding-inline-start: 2.4em;
+  }
+</style>

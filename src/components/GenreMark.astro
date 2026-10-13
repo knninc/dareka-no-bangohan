@@ -1,0 +1,47 @@
+---
+/** ジャンルの印（丸に一文字）。装飾なので読み上げない */
+import { genreById, type GenreId } from '../lib/genres';
+
+interface Props {
+  genre: GenreId;
+  size?: 'sm' | 'md' | 'lg';
+}
+const { genre, size = 'sm' } = Astro.props;
+const g = genreById(genre);
+---
+
+<span class:list={['mark', `mark--${size}`]} data-genre={genre} aria-hidden="true">{g.mark}</span>
+
+<style>
+  .mark {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    inline-size: 1.9em;
+    block-size: 1.9em;
+    border: 1.5px solid var(--g);
+    border-radius: 50%;
+    color: var(--g);
+    font-family: var(--font-mincho);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0;
+    /* 判子のかすれ：ほんの少し回す */
+    rotate: -6deg;
+  }
+
+  .mark--sm {
+    font-size: 0.8125rem;
+  }
+
+  .mark--md {
+    font-size: 1.25rem;
+    border-width: 2px;
+  }
+
+  .mark--lg {
+    font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
+    border-width: 3px;
+    box-shadow: inset 0 0 0 0.12em var(--paper), inset 0 0 0 calc(0.12em + 1px) var(--g);
+  }
+</style>

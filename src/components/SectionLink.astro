@@ -1,0 +1,36 @@
+---
+/** 「→」付きの文字リンク（ボタンの代わり） */
+interface Props {
+  href: string;
+  class?: string;
+}
+const { href, class: className } = Astro.props;
+---
+
+<a class:list={['section-link', className]} href={href}><span><slot /></span><span class="section-link__arrow" aria-hidden="true">→</span></a>
+
+<style>
+  .section-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9em;
+    padding-block: 0.55em 0.6em;
+    padding-inline: 0 0.2em;
+    border-block-end: 1.5px solid currentColor;
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.14em;
+    line-height: 1.4;
+    text-decoration: none;
+  }
+
+  .section-link__arrow {
+    font-family: var(--font-mono);
+    transition: translate 0.2s var(--ease);
+  }
+
+  .section-link:hover .section-link__arrow {
+    translate: 0.3em 0;
+  }
+</style>

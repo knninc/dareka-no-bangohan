@@ -1,0 +1,397 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import GenreMark from '../components/GenreMark.astro';
+import { SITE } from '../site.config';
+import { GENRES, genreUrl } from '../lib/genres';
+
+const facts: [string, string][] = [
+  ['ふたりで', '参加者は基本的にふたり。住んでいる場所は別々です。'],
+  ['通話をつないで', 'オンライン通話をつなぎながら、それぞれの台所で同じテーマの料理を作り、食べます。'],
+  ['週に一回', '週刊です。月に四回、四つのジャンルを巡ります。'],
+  ['献立はGPT', '献立はGPTが考えます。料理するのは私たちです。'],
+];
+
+const principles: [string, string][] = [
+  ['昔の人', '史実、史料にもとづく推定、現代での再現、創作を分けて書きます。当時なかった食材や調理法を、根拠なく使いません。'],
+  ['海外の宗教', '信仰や禁忌、暮らしの習慣を尊重します。同じ宗教でも、地域や宗派、人によって違うことを前提にします。珍しいものとして消費しません。'],
+  ['ファンタジー', '自由に想像します。ただし、その世界の中で、食料の調達や保存、調理設備には筋を通します。'],
+  ['現代人', '職業や国籍、性別で決めつけず、その人の暮らしの条件から食卓を考えます。'],
+  ['すべての号', '実際に作った記録と、想像上の設定を分けて載せます。写真は実際に撮ったものだけを載せます。'],
+];
+
+const marks: { tag: string; kind: 'imagined' | 'record' | 'basis' | 'pending'; text: string }[] = [
+  { tag: '想像', kind: 'imagined', text: 'その号の「誰か」についての設定。実在の人物ではありません。' },
+  { tag: '献立・解説・資料', kind: 'basis', text: '何を作ったか、なぜその料理なのか、参考にしたレシピや資料。' },
+  { tag: '記録', kind: 'record', text: '実際に作って食べたときの写真と感想。' },
+  { tag: '記録待ち', kind: 'pending', text: 'まだ写真や感想が載っていない号。' },
+  {
+    tag: '史実・推定・再現・創作',
+    kind: 'basis',
+    text: '昔の人の回などで、書いてあることの根拠の種類を示すしるし。ほかに【伝承】【設定】【記録】があります。',
+  },
+];
+---
+
+<BaseLayout
+  title="この活動について"
+  description="「週刊・誰かの晩ごはん」は、毎週ひとり「誰か」の晩ごはんを想像して、実際に作って食べてみる、ふたりの活動の記録です。"
+  current="about"
+>
+  <article class="about">
+    <header class="about-head frame">
+      <div class="about-head__inner">
+        <p class="kicker">この活動について</p>
+        <h1 class="about-head__title">
+          <span>{SITE.copy[0]}</span><span>{SITE.copy[1]}</span>
+        </h1>
+        <p class="about-head__lead">
+          「週刊・誰かの晩ごはん」は、毎週ひとり「誰か」を決めて、その人が食べていそうな晩ごはんを想像し、実際に作って食べてみる活動の記録です。
+        </p>
+      </div>
+    </header>
+
+    <section class="facts frame" aria-labelledby="facts-title">
+      <h2 id="facts-title" class="visually-hidden">やり方</h2>
+      <ol class="facts__list">
+        {
+          facts.map(([k, v], i) => (
+            <li>
+              <span class="facts__no mono">{String(i + 1).padStart(2, '0')}</span>
+              <h3 class="facts__key">{k}</h3>
+              <p class="facts__value">{v}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section class="genres-mini frame" aria-labelledby="genres-mini-title">
+      <div class="block">
+        <h2 id="genres-mini-title" class="block__title">四つの食卓</h2>
+        <div class="block__body">
+          <p class="block__lead">
+            毎月、この四つを巡ります。1000年前の農民も、遠い国の修道士も、存在しない世界の魔女も、疲れ切った現代人も、みんな晩ごはんを食べている。
+          </p>
+          <ul class="genres-mini__list">
+            {
+              GENRES.map((g) => (
+                <li data-genre={g.id}>
+                  <a href={genreUrl(g.id)}>
+                    <GenreMark genre={g.id} size="md" />
+                    <span class="genres-mini__name">{g.name}</span>
+                    <span class="genres-mini__lead">{g.lead}</span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="marks frame" aria-labelledby="marks-title">
+      <div class="block">
+        <h2 id="marks-title" class="block__title">この雑誌の読み方</h2>
+        <div class="block__body">
+          <p class="block__lead">想像と記録を混ぜないために、しるしを付けています。</p>
+          <dl class="marks__list">
+            {
+              marks.map((m) => (
+                <div>
+                  <dt>
+                    <span class="mark-tag" data-kind={m.kind}>
+                      {m.tag}
+                    </span>
+                  </dt>
+                  <dd>{m.text}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="principles frame" aria-labelledby="principles-title">
+      <div class="block">
+        <h2 id="principles-title" class="block__title">編集の約束</h2>
+        <div class="block__body">
+          <dl class="principles__list">
+            {
+              principles.map(([k, v]) => (
+                <div>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
+                </div>
+              ))
+            }
+          </dl>
+          <p class="principles__note">個人名やプロフィールは載せていません。台所は「{Object.values(SITE.kitchens).join('」「')}」と呼んでいます。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="purpose frame" aria-labelledby="purpose-title">
+      <div class="purpose__inner">
+        <h2 id="purpose-title" class="purpose__q">なんのために？</h2>
+        <p class="purpose__a">特に目的はありません。</p>
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .about-head {
+    padding-block: var(--space-7) var(--space-7);
+  }
+
+  .about-head__inner {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .about-head__title {
+    display: grid;
+    font-size: clamp(1.25rem, 6.6vw, 4.5rem);
+    line-height: 1.3;
+    word-break: keep-all;
+  }
+
+  .about-head__lead {
+    max-inline-size: 32em;
+    font-size: var(--fs-lg);
+    line-height: 2;
+  }
+
+  /* ---- やり方 ---- */
+  .facts__list {
+    list-style: none;
+    display: grid;
+    border-block-start: 1.5px solid var(--ink);
+  }
+
+  .facts__list li {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    grid-template-areas:
+      'no key'
+      'no value';
+    gap: var(--space-1) var(--space-3);
+    padding-block: var(--space-5);
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .facts__no {
+    grid-area: no;
+    font-size: var(--fs-sm);
+    color: var(--shu-text);
+    padding-block-start: 0.4em;
+  }
+
+  .facts__key {
+    grid-area: key;
+    font-size: var(--fs-xl);
+  }
+
+  .facts__value {
+    grid-area: value;
+    font-size: var(--fs-md);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 60rem) {
+    .facts__list {
+      grid-template-columns: repeat(4, 1fr);
+      border-block-end: 1.5px solid var(--ink);
+    }
+    .facts__list li {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        'no'
+        'key'
+        'value';
+      align-content: start;
+      padding: var(--space-5) var(--space-5) var(--space-6);
+      border-block-end: 0;
+      border-inline-start: 1px solid var(--rule);
+    }
+    .facts__list li:first-child {
+      border-inline-start: 0;
+      padding-inline-start: 0;
+    }
+  }
+
+  /* ---- 共通ブロック ---- */
+  .genres-mini,
+  .marks,
+  .principles {
+    padding-block-start: var(--space-8);
+  }
+
+  .block {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .block__title {
+    font-size: var(--fs-xl);
+    padding-block-end: var(--space-3);
+    border-block-end: 1px solid var(--ink);
+  }
+
+  .block__body {
+    display: grid;
+    gap: var(--space-5);
+    max-inline-size: 44rem;
+  }
+
+  .block__lead {
+    font-size: var(--fs-body);
+  }
+
+  @media (min-width: 60rem) {
+    .block {
+      grid-template-columns: 15rem minmax(0, 1fr);
+      column-gap: var(--space-8);
+      align-items: start;
+    }
+    .block__title {
+      border-block-end: 0;
+      border-block-start: 1.5px solid var(--ink);
+      padding-block: var(--space-4) 0;
+    }
+    .block__body {
+      padding-block-start: var(--space-4);
+      border-block-start: 1px solid var(--rule);
+    }
+  }
+
+  /* ---- 四つの食卓（小） ---- */
+  .genres-mini__list {
+    list-style: none;
+    display: grid;
+  }
+
+  .genres-mini__list a {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'mark name'
+      'mark lead';
+    gap: 0 var(--space-4);
+    align-items: center;
+    padding-block: var(--space-3);
+    border-block-end: 1px dotted var(--rule);
+    text-decoration: none;
+  }
+
+  .genres-mini__list :global(.mark) {
+    grid-area: mark;
+  }
+
+  .genres-mini__name {
+    grid-area: name;
+    font-weight: 800;
+    font-size: var(--fs-lg);
+    color: var(--g);
+  }
+
+  .genres-mini__lead {
+    grid-area: lead;
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+  }
+
+  /* ---- 読み方 ---- */
+  .marks__list,
+  .principles__list {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .marks__list div {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .mark-tag {
+    display: inline-block;
+    padding: 0.05em 0.6em 0.1em;
+    border: 1px solid currentColor;
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.14em;
+    color: var(--ink-2);
+  }
+
+  .mark-tag[data-kind='imagined'] {
+    color: var(--ai);
+    border-style: dashed;
+  }
+
+  .mark-tag[data-kind='record'] {
+    color: var(--paper);
+    background: var(--shu-text);
+    border-color: var(--shu-text);
+  }
+
+  .mark-tag[data-kind='pending'] {
+    border-style: dashed;
+  }
+
+  .marks__list dd,
+  .principles__list dd {
+    font-size: var(--fs-md);
+  }
+
+  @media (min-width: 48rem) {
+    .marks__list div,
+    .principles__list div {
+      grid-template-columns: 11rem 1fr;
+      gap: var(--space-4);
+      align-items: baseline;
+    }
+  }
+
+  .principles__list dt {
+    font-weight: 800;
+  }
+
+  .principles__note {
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+  }
+
+  /* ---- 目的 ---- */
+  .purpose {
+    padding-block: var(--space-9) var(--space-6);
+  }
+
+  .purpose__inner {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-6);
+    padding-block: var(--space-8);
+    border-block: 1.5px solid var(--ink);
+    text-align: center;
+  }
+
+  .purpose__q {
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.3em;
+    color: var(--ink-2);
+  }
+
+  .purpose__a {
+    font-weight: 800;
+    font-size: clamp(1.875rem, 1rem + 4.4vw, 4.5rem);
+    line-height: 1.3;
+    letter-spacing: 0.06em;
+    font-feature-settings: 'palt';
+    word-break: auto-phrase;
+    color: var(--shu-text);
+  }
+</style>

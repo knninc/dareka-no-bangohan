@@ -1,0 +1,39 @@
+---
+/** 印＋ジャンル名。link=true でジャンル別一覧へのリンクになる */
+import GenreMark from './GenreMark.astro';
+import { genreById, genreUrl, type GenreId } from '../lib/genres';
+
+interface Props {
+  genre: GenreId;
+  link?: boolean;
+  class?: string;
+}
+const { genre, link = false, class: className } = Astro.props;
+const g = genreById(genre);
+const Tag = link ? 'a' : 'span';
+---
+
+<Tag class:list={['genre-label', className]} data-genre={genre} href={link ? genreUrl(genre) : undefined}>
+  <GenreMark genre={genre} />
+  <span class="genre-label__name">{g.name}</span>
+</Tag>
+
+<style>
+  .genre-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    color: var(--g);
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+    text-decoration: none;
+  }
+
+  a.genre-label:hover .genre-label__name {
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+</style>

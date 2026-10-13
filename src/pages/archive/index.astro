@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArchiveView from '../../components/ArchiveView.astro';
+import { getIssues } from '../../lib/issues';
+
+const all = await getIssues();
+---
+
+<BaseLayout
+  title="バックナンバー"
+  description="「週刊・誰かの晩ごはん」のバックナンバー。号数、開催日、ジャンル、献立の一覧。"
+  current="archive"
+>
+  <ArchiveView all={all} />
+</BaseLayout>

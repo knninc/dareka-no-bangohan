@@ -1,0 +1,1006 @@
+---
+import { Picture } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Logo from '../components/Logo.astro';
+import TateTitle from '../components/TateTitle.astro';
+import PlateMenu from '../components/PlateMenu.astro';
+import GenreLabel from '../components/GenreLabel.astro';
+import GenreMark from '../components/GenreMark.astro';
+import Shelf from '../components/Shelf.astro';
+import CropMarks from '../components/CropMarks.astro';
+import SectionLink from '../components/SectionLink.astro';
+import { SITE } from '../site.config';
+import { GENRES, genreById, genreUrl } from '../lib/genres';
+import { getIssues, issueUrl, issueSections, coverPhoto, hasRecord } from '../lib/issues';
+import { pad3, dateDots, dateJa, weekdayEn, isoDate } from '../lib/format';
+import { tate } from '../lib/tate';
+
+const issues = await getIssues();
+const latest = issues[0];
+const latestGenre = latest ? genreById(latest.data.genre) : undefined;
+const latestSections = latest ? issueSections(latest).html : {};
+const latestCover = latest ? coverPhoto(latest) : undefined;
+
+// 「今夜の誰か」の冒頭2段落だけを抜き出す
+const someoneExcerpt = latestSections.someone
+  ? latestSections.someone
+      .split('</p>')
+      .filter((s) => s.includes('<p'))
+      .slice(0, 2)
+      .map((s) => s + '</p>')
+      .join('')
+  : undefined;
+
+// 最新号の目次
+const latestToc = latest
+  ? [
+      latestSections.someone && '今夜の誰か',
+      '今夜の献立',
+      latestSections.why && 'なぜこの料理なのか',
+      (latest.data.recipes.length || latestSections.recipe) && 'レシピ',
+      (latest.data.photos.length || latestSections.table) && 'ふたりの食卓',
+      latestSections.afterword && '編集後記',
+    ].filter(Boolean) as string[]
+  : [];
+
+const countByGenre = Object.fromEntries(GENRES.map((g) => [g.id, issues.filter((i) => i.data.genre === g.id)]));
+
+/** 創刊のことば（縦組み用に行ごと） */
+const manifesto: string[][] = [
+  ['世界には、今日も誰かの晩ごはんがある。'],
+  ['1000年前の農民も、', '遠い国の修道士も、', '存在しない世界の魔女も。'],
+  ['その人たちは、', '何を食べていたんだろう。'],
+  ['私たちは毎週、', '誰かの食卓を想像して、', '実際に料理を作って食べてみる。'],
+  ['歴史を調べることもある。', '宗教について学ぶこともある。', '架空の世界で暮らす人を', '想像することもある。'],
+  ['そして、ときには', '疲れ切った現代人の夕食を作る。'],
+  ['献立はGPTが考える。', '料理するのは私たち。'],
+];
+---
+
+<BaseLayout>
+  <!-- ============ 表紙 ============ -->
+  <section class="cover frame" aria-label="表紙">
+    <div class="cover__sheet">
+      <CropMarks />
+
+      <p class="cover__strip mono">
+        {
+          latest ? (
+            <>
+              <span>VOL.{pad3(latest.data.vol)}</span>
+              <span>
+                {dateDots(latest.data.date)} {weekdayEn(latest.data.date)}
+              </span>
+              <span class="cover__strip-wide">WEEKLY · SOMEONE’S DINNER</span>
+            </>
+          ) : (
+            <span>WEEKLY · SOMEONE’S DINNER</span>
+          )
+        }
+      </p>
+
+      <div class="cover__mast">
+        <Logo size="masthead" as="h1" />
+      </div>
+
+      <p class="cover__copy">
+        <span>{SITE.copy[0]}</span><span>{SITE.copy[1]}</span>
+      </p>
+
+      {
+        latest && latestGenre && (
+          <div class="cover__feature" data-genre={latest.data.genre}>
+            <div class="cover__headline">
+              <p class="cover__tag">今週の誰か</p>
+              <a href={issueUrl(latest)} class="cover__title-link">
+                <TateTitle title={latest.data.title} lines={latest.data.titleLines} as="p" stagger class="cover__title" />
+              </a>
+            </div>
+
+            <div class="cover__visual">
+              {latestCover ? (
+                <Picture
+                  src={latestCover.src}
+                  alt={latestCover.alt}
+                  widths={[480, 800, 1200]}
+                  sizes="(min-width: 60rem) 34vw, 56vw"
+                  formats={['avif', 'webp']}
+                  loading="eager"
+                  class="cover__photo"
+                />
+              ) : (
+                <PlateMenu menu={latest.data.menu} />
+              )}
+            </div>
+
+            <div class="cover__caption">
+              <GenreLabel genre={latest.data.genre} link />
+              {latest.data.subtitle && <p class="cover__sub">{latest.data.subtitle}</p>}
+              <SectionLink href={issueUrl(latest)}>VOL.{pad3(latest.data.vol)}を読む</SectionLink>
+            </div>
+          </div>
+        )
+      }
+
+      <p class="cover__code" aria-hidden="true">
+        <span class="cover__bars"></span>
+        <span class="mono">{latest ? `VOL.${pad3(latest.data.vol)}` : 'VOL.000'} / 定価 なし</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 創刊のことば ============ -->
+  <section class="manifesto frame" aria-labelledby="manifesto-title">
+    <div class="manifesto__inner">
+      <h2 id="manifesto-title" class="manifesto__title">
+        <span class="kicker">創刊のことば</span>
+      </h2>
+      <div class="manifesto__body">
+        {manifesto.map((stanza) => <p set:html={stanza.map((l) => `<span>${tate(l)}</span>`).join('')} />)}
+        <p class="manifesto__last"><span>特に目的はありません。</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 今週の特集 ============ -->
+  {
+    latest && latestGenre && (
+      <section class="feature frame" data-genre={latest.data.genre} aria-labelledby="feature-title">
+        <div class="feature__inner">
+          <p class="kicker feature__kicker">今週の特集</p>
+
+          <div class="feature__vol" aria-hidden="true">
+            <span class="feature__vol-label mono">VOL.</span>
+            <span class="feature__vol-no">{pad3(latest.data.vol)}</span>
+          </div>
+
+          <div class="feature__text">
+            <div class="feature__meta">
+              <GenreLabel genre={latest.data.genre} link />
+              <time class="mono" datetime={isoDate(latest.data.date)}>
+                {dateJa(latest.data.date)}
+              </time>
+            </div>
+            <h2 id="feature-title" class="feature__title">
+              <a href={issueUrl(latest)}>{latest.data.title}</a>
+            </h2>
+            {latest.data.subtitle && <p class="feature__sub">{latest.data.subtitle}</p>}
+
+            {someoneExcerpt && (
+              <div class="feature__excerpt">
+                <p class="feature__excerpt-label">今夜の誰か</p>
+                <div class="prose" set:html={someoneExcerpt} />
+              </div>
+            )}
+
+            <div class="feature__contents">
+              <p class="feature__contents-label">この号の目次</p>
+              <ol>
+                {latestToc.map((t, i) => (
+                  <li>
+                    <span class="mono">{String(i + 1).padStart(2, '0')}</span>
+                    {t}
+                  </li>
+                ))}
+              </ol>
+              {!hasRecord(latest) && <p class="feature__pending">写真と感想は、まだありません。</p>}
+            </div>
+
+            <SectionLink href={issueUrl(latest)}>この号を読む</SectionLink>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ============ これまでの晩ごはん ============ -->
+  <section class="backnumbers frame" aria-labelledby="backnumbers-title">
+    <div class="section-head">
+      <p class="kicker">これまでの晩ごはん</p>
+      <h2 id="backnumbers-title" class="section-head__title">本棚には、いま{issues.length}冊。</h2>
+      <p class="section-head__note">
+        {issues.length <= 1 ? 'まだ1冊目です。毎週1冊ずつ増えていく予定です。' : '背表紙をひらくと、その週の食卓が読めます。'}
+      </p>
+    </div>
+    <Shelf issues={issues.slice(0, 24)} />
+    <div class="backnumbers__more">
+      <SectionLink href="/archive/">バックナンバーをすべて見る</SectionLink>
+    </div>
+  </section>
+
+  <!-- ============ 四つの食卓 ============ -->
+  <section id="genres" class="genres frame" aria-labelledby="genres-title">
+    <div class="section-head">
+      <p class="kicker">四つの食卓</p>
+      <h2 id="genres-title" class="section-head__title">毎月、四つの食卓を巡る。</h2>
+      <p class="section-head__note">現代人、昔の人、ファンタジー、海外の宗教。週替わりで、ちがう誰かの晩ごはんへ。</p>
+    </div>
+
+    <ol class="genres__list">
+      {
+        GENRES.map((g) => {
+          const list = countByGenre[g.id];
+          const newest = list[0];
+          return (
+            <li class="genre" data-genre={g.id}>
+              <div class="genre__head">
+                <span class="genre__no mono">{g.no}</span>
+                <GenreMark genre={g.id} size="lg" />
+              </div>
+              <div class="genre__name">
+                <h3>
+                  <a href={genreUrl(g.id)}>{g.name}</a>
+                </h3>
+                <span class="genre__en mono" lang="en">
+                  {g.en}
+                </span>
+              </div>
+              <p class="genre__lead">{g.lead}</p>
+              {newest ? (
+                <p class="genre__latest">
+                  <span class="genre__tag">最新</span>
+                  <span>
+                    VOL.{pad3(newest.data.vol)}　{newest.data.title}
+                  </span>
+                </p>
+              ) : (
+                <p class="genre__latest genre__latest--example">
+                  <span class="genre__tag">たとえば</span>
+                  <span>{g.example}</span>
+                </p>
+              )}
+              <p class="genre__count mono">{list.length > 0 ? `これまで${list.length}号` : 'まだありません'}</p>
+            </li>
+          );
+        })
+      }
+    </ol>
+    <p class="genres__note">「たとえば」は、テーマの例です。まだ開催した号ではありません。</p>
+  </section>
+
+  <!-- ============ この活動について ============ -->
+  <section class="about-teaser frame" aria-labelledby="about-teaser-title">
+    <div class="about-teaser__inner">
+      <p class="kicker">この活動について</p>
+      <h2 id="about-teaser-title" class="about-teaser__title">
+        <span>普通の台所で、</span><span>少し変わったことを、</span><span>真剣に。</span>
+      </h2>
+      <div class="about-teaser__body">
+        <p>
+          ふたりが別々の場所に住みながら、オンライン通話をつないで、毎週おなじテーマの料理を作って食べています。献立はGPTが考え、料理するのは私たち。
+        </p>
+        <SectionLink href="/about/">この活動について、もう少し</SectionLink>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ---------------------------------------------------------------
+     表紙
+     --------------------------------------------------------------- */
+  .cover {
+    padding-block: var(--space-6) var(--space-7);
+  }
+
+  .cover__sheet {
+    position: relative;
+    display: grid;
+    grid-template-areas:
+      'strip'
+      'mast'
+      'copy'
+      'feature'
+      'code';
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-4) var(--space-5);
+    border: 1px solid var(--ink);
+    background: color-mix(in srgb, var(--paper) 70%, #fff 30%);
+  }
+
+  .cover__strip {
+    grid-area: strip;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    padding-block-end: var(--space-2);
+    border-block-end: 1px solid var(--ink);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+  }
+
+  .cover__strip-wide {
+    display: none;
+  }
+
+  .cover__mast {
+    grid-area: mast;
+    container-type: inline-size;
+  }
+
+  .cover__copy span {
+    display: block;
+  }
+
+  .cover__copy {
+    grid-area: copy;
+    display: block;
+    font-size: clamp(1.125rem, 0.9rem + 1.4vw, 1.75rem);
+    font-weight: 800;
+    line-height: 1.6;
+    letter-spacing: 0.06em;
+    font-feature-settings: 'palt';
+  }
+
+  .cover__feature {
+    grid-area: feature;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'visual headline'
+      'caption caption';
+    gap: var(--space-5) var(--space-4);
+    padding-block-start: var(--space-5);
+    border-block-start: 1px solid var(--ink);
+  }
+
+  .cover__headline {
+    grid-area: headline;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .cover__tag {
+    writing-mode: vertical-rl;
+    padding: 0.7em 0.35em;
+    background: var(--g);
+    color: var(--paper);
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    line-height: 1;
+  }
+
+  .cover__title-link {
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .cover__title-link:hover {
+    color: var(--ink);
+  }
+
+  .cover__title-link:hover :global(.cover__title) {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.35em;
+    text-decoration-color: var(--shu);
+  }
+
+  .cover__headline :global(.cover__title) {
+    font-size: clamp(1.375rem, 6.3vw, 3rem);
+    line-height: 1.38;
+  }
+
+  .cover__visual {
+    grid-area: visual;
+    align-self: center;
+    min-inline-size: 0;
+  }
+
+  .cover__visual :global(.cover__photo img),
+  .cover__visual :global(img.cover__photo) {
+    inline-size: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border: 1px solid var(--ink);
+  }
+
+  .cover__caption {
+    grid-area: caption;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-5);
+  }
+
+  .cover__sub {
+    font-size: var(--fs-lg);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    word-break: auto-phrase;
+    text-wrap: balance;
+  }
+
+  .cover__sub::before {
+    content: '──';
+    margin-inline-end: 0.4em;
+    color: var(--shu);
+    letter-spacing: -0.1em;
+  }
+
+  .cover__caption :global(.section-link) {
+    margin-inline-start: auto;
+  }
+
+  .cover__code {
+    grid-area: code;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-2);
+  }
+
+  .cover__bars {
+    inline-size: 74px;
+    block-size: 26px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--ink) 0 1px,
+      transparent 1px 3px,
+      var(--ink) 3px 5px,
+      transparent 5px 6px,
+      var(--ink) 6px 7px,
+      transparent 7px 10px
+    );
+    opacity: 0.85;
+  }
+
+  @media (min-width: 40rem) {
+    .cover__sheet {
+      padding: var(--space-6);
+    }
+    .cover__strip-wide {
+      display: inline;
+    }
+  }
+
+  @media (min-width: 60rem) {
+    .cover__sheet {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas:
+        'strip strip'
+        'mast mast'
+        'copy feature'
+        'copy code';
+      column-gap: var(--space-7);
+      padding: var(--space-6) var(--space-7) var(--space-5);
+    }
+
+    .cover__copy {
+      writing-mode: vertical-rl;
+      align-self: start;
+      padding-block-start: var(--space-5);
+      font-size: clamp(1.5rem, 1rem + 1vw, 2rem);
+      line-height: 1.75;
+    }
+
+    .cover__copy span:nth-child(2) {
+      padding-inline-start: 2.5em;
+    }
+
+    .cover__feature {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'caption visual headline';
+      grid-template-columns: minmax(19rem, 0.8fr) minmax(0, 1.2fr) auto;
+      align-items: end;
+      padding-block-start: var(--space-6);
+      border-block-start: 0;
+      border-inline-start: 1px solid var(--ink);
+      padding-inline-start: var(--space-7);
+      column-gap: var(--space-6);
+    }
+
+    .cover__visual {
+      max-inline-size: 33rem;
+      justify-self: center;
+      inline-size: 100%;
+    }
+
+    .cover__caption {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-end;
+      gap: var(--space-4);
+      align-self: end;
+    }
+
+    .cover__caption :global(.section-link) {
+      margin-inline-start: 0;
+    }
+
+    .cover__sub {
+      font-size: 1.125rem;
+    }
+
+    .cover__headline :global(.cover__title) {
+      font-size: clamp(2rem, 1rem + 2.2vw, 3.25rem);
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     創刊のことば
+     --------------------------------------------------------------- */
+  .manifesto {
+    padding-block: var(--space-8);
+  }
+
+  .manifesto__inner {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .manifesto__body {
+    display: grid;
+    gap: 1.4em;
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    line-height: 1.95;
+    letter-spacing: 0.08em;
+  }
+
+  .manifesto__body :global(p > span) {
+    display: block;
+  }
+
+  .manifesto__last {
+    margin-block-start: 0.6em;
+    font-weight: 800;
+    color: var(--shu-text);
+  }
+
+  @media (min-width: 60rem) {
+    .manifesto__inner {
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      gap: var(--space-7);
+    }
+
+    .manifesto__title {
+      grid-column: 2;
+      grid-row: 1;
+      writing-mode: vertical-rl;
+    }
+
+    .manifesto__title :global(.kicker) {
+      writing-mode: vertical-rl;
+    }
+
+    .manifesto__title :global(.kicker::before) {
+      inline-size: 1px;
+      block-size: 1.75em;
+    }
+
+    .manifesto__body {
+      grid-column: 1;
+      grid-row: 1;
+      justify-self: end;
+      writing-mode: vertical-rl;
+      block-size: 24em;
+      gap: 0 2.2em;
+      font-size: clamp(1.125rem, 0.9rem + 0.5vw, 1.375rem);
+      line-height: 2.1;
+      display: block;
+    }
+
+    .manifesto__body :global(p) {
+      margin-inline-start: 0;
+    }
+
+    .manifesto__body :global(p + p) {
+      margin-block-start: 1.6em;
+    }
+
+    .manifesto__last {
+      padding-block-start: 6em;
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     今週の特集
+     --------------------------------------------------------------- */
+  .feature {
+    padding-block: var(--space-8);
+    background: var(--paper-2);
+    background-image: var(--grain);
+    border-block: 1px solid var(--ink);
+  }
+
+  .feature__inner {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .feature__kicker {
+    color: var(--ink);
+  }
+
+  .feature__vol {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3em;
+    color: var(--g);
+    line-height: 0.85;
+  }
+
+  .feature__vol-label {
+    font-size: var(--fs-md);
+  }
+
+  .feature__vol-no {
+    font-family: var(--font-mincho);
+    font-weight: 800;
+    font-size: clamp(6rem, 30vw, 15rem);
+    letter-spacing: -0.04em;
+  }
+
+  .feature__text {
+    display: grid;
+    gap: var(--space-5);
+    max-inline-size: 40rem;
+  }
+
+  .feature__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-5);
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+  }
+
+  .feature__title {
+    font-size: var(--fs-2xl);
+    line-height: 1.45;
+  }
+
+  .feature__title a {
+    text-decoration: none;
+  }
+
+  .feature__sub {
+    font-size: var(--fs-lg);
+    font-weight: 800;
+  }
+
+  .feature__sub::before {
+    content: '──';
+    margin-inline-end: 0.4em;
+    color: var(--shu);
+    letter-spacing: -0.1em;
+  }
+
+  .feature__excerpt {
+    display: grid;
+    gap: var(--space-2);
+    padding-inline-start: var(--space-4);
+    border-inline-start: 2px solid var(--g);
+  }
+
+  .feature__excerpt-label,
+  .feature__contents-label {
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.24em;
+    color: var(--ink-2);
+  }
+
+  .feature__contents {
+    display: grid;
+    gap: var(--space-2);
+    padding-block: var(--space-4);
+    border-block: 1px solid var(--rule);
+  }
+
+  .feature__contents ol {
+    list-style: none;
+    display: grid;
+    gap: 0.2em;
+    font-size: var(--fs-md);
+  }
+
+  .feature__contents li {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  .feature__contents .mono {
+    color: var(--g);
+    font-size: var(--fs-sm);
+    padding-block-start: 0.15em;
+  }
+
+  .feature__pending {
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+  }
+
+  .feature__pending::before {
+    content: '※';
+    margin-inline-end: 0.3em;
+  }
+
+  .feature :global(.section-link) {
+    justify-self: start;
+  }
+
+  @media (min-width: 60rem) {
+    .feature__inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      grid-template-areas:
+        'kicker kicker'
+        'vol text';
+      column-gap: var(--space-8);
+    }
+    .feature__kicker {
+      grid-area: kicker;
+    }
+    .feature__vol {
+      grid-area: vol;
+      align-self: start;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .feature__vol-no {
+      font-size: clamp(10rem, 18vw, 18rem);
+    }
+    .feature__text {
+      grid-area: text;
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     セクション見出し（共通）
+     --------------------------------------------------------------- */
+  .section-head {
+    display: grid;
+    gap: var(--space-3);
+    margin-block-end: var(--space-6);
+  }
+
+  .section-head__title {
+    font-size: var(--fs-2xl);
+  }
+
+  .section-head__note {
+    max-inline-size: 34em;
+    font-size: var(--fs-md);
+    color: var(--ink-2);
+  }
+
+  /* ---------------------------------------------------------------
+     これまでの晩ごはん
+     --------------------------------------------------------------- */
+  .backnumbers {
+    padding-block: var(--space-8) 0;
+  }
+
+  .backnumbers__more {
+    margin-block-start: var(--space-5);
+  }
+
+  /* ---------------------------------------------------------------
+     四つの食卓
+     --------------------------------------------------------------- */
+  .genres {
+    padding-block: var(--space-9) 0;
+  }
+
+  .genres__list {
+    list-style: none;
+    display: grid;
+    border-block-start: 1.5px solid var(--ink);
+  }
+
+  .genre {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'head name'
+      'head lead'
+      'head latest'
+      'head count';
+    gap: var(--space-2) var(--space-5);
+    padding-block: var(--space-5);
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .genre__head {
+    grid-area: head;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: var(--space-2);
+  }
+
+  .genre__no {
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+
+  .genre__name {
+    grid-area: name;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-3);
+    font-size: var(--fs-xl);
+    color: var(--g);
+  }
+
+  .genre__name h3 {
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .genre__name a {
+    text-decoration: none;
+  }
+
+  .genre__name a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .genre:hover .genre__name a {
+    color: var(--ink);
+  }
+
+  .genre__en {
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    color: var(--ink-2);
+  }
+
+  .genre__lead {
+    grid-area: lead;
+    font-size: var(--fs-md);
+  }
+
+  .genre__latest {
+    grid-area: latest;
+    display: flex;
+    gap: var(--space-3);
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+    line-height: 1.7;
+  }
+
+  .genre__tag {
+    flex: none;
+    align-self: flex-start;
+    margin-block-start: 0.2em;
+    padding: 0 0.5em;
+    border: 1px solid currentColor;
+    font-family: var(--font-gothic);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    line-height: 1.6;
+  }
+
+  .genre__latest--example .genre__tag {
+    border-style: dashed;
+  }
+
+  .genre__count {
+    grid-area: count;
+    font-size: 0.6875rem;
+    color: var(--ink-2);
+  }
+
+  .genres__note {
+    margin-block-start: var(--space-4);
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+
+  .genres__note::before {
+    content: '※';
+    margin-inline-end: 0.3em;
+  }
+
+  @media (min-width: 48rem) {
+    .genres__list {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: var(--space-7);
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .genres__list {
+      grid-template-columns: repeat(4, 1fr);
+      column-gap: 0;
+      border-block-end: 1.5px solid var(--ink);
+    }
+    .genre {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        'head'
+        'name'
+        'lead'
+        'latest'
+        'count';
+      align-content: start;
+      padding: var(--space-6) var(--space-5);
+      border-block-end: 0;
+      border-inline-start: 1px solid var(--rule);
+    }
+    .genre:first-child {
+      border-inline-start: 0;
+      padding-inline-start: 0;
+    }
+    .genre__head {
+      justify-items: start;
+      grid-template-columns: auto auto;
+      justify-content: space-between;
+      align-items: start;
+      margin-block-end: var(--space-4);
+    }
+    .genre__name {
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     この活動について
+     --------------------------------------------------------------- */
+  .about-teaser {
+    padding-block: var(--space-9) 0;
+  }
+
+  .about-teaser__inner {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .about-teaser__title {
+    display: grid;
+    font-size: clamp(1.5rem, 7.6vw, 4.25rem);
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+  }
+
+  .about-teaser__body {
+    display: grid;
+    gap: var(--space-5);
+    max-inline-size: 30em;
+    align-content: start;
+  }
+
+  .about-teaser__body :global(.section-link) {
+    justify-self: start;
+  }
+
+  @media (min-width: 60rem) {
+    .about-teaser__inner {
+      grid-template-columns: auto 1fr;
+      grid-template-areas:
+        'kicker kicker'
+        'title body';
+      column-gap: var(--space-8);
+      align-items: end;
+    }
+    .about-teaser__inner > .kicker {
+      grid-area: kicker;
+    }
+    .about-teaser__title {
+      grid-area: title;
+    }
+    .about-teaser__body {
+      grid-area: body;
+    }
+  }
+</style>

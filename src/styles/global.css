@@ -1,0 +1,369 @@
+/* ==========================================================================
+   週刊・誰かの晩ごはん — design tokens & base
+   紙（クリーム）に、墨・朱・藍の三色刷り。リソグラフ印刷の ZINE を下敷きにする。
+   ========================================================================== */
+
+:root {
+  /* ---- 紙とインク ---- */
+  --paper: #f4eee2;          /* 本文の紙 */
+  --paper-2: #eae1cf;        /* 色上質紙・帯 */
+  --paper-3: #e0d4bd;        /* 罫・影 */
+  --ink: #1f1c18;            /* 墨 */
+  --ink-2: #4f4940;          /* 二次テキスト（紙上で 7.7:1） */
+  --ink-3: #6e665a;          /* 注記（紙上で 4.9:1。paper-2 上では使わない） */
+  --shu: #c8381f;            /* 朱：印・図版用 */
+  --shu-text: #b3321b;       /* 朱：文字用（紙上で 5.3:1） */
+  --ai: #263e73;             /* 藍 */
+
+  --rule: color-mix(in srgb, var(--ink) 22%, transparent);
+  --rule-strong: var(--ink);
+
+  /* ---- ジャンルのインク（すべて紙上で 6:1 以上） ---- */
+  --g-modern: #2a447e;   /* 今：藍 */
+  --g-past: #86461f;     /* 昔：柿渋 */
+  --g-fantasy: #2e6243;  /* 幻：苔 */
+  --g-faith: #6b3560;    /* 祈：葡萄 */
+
+  /* ---- 書体 ---- */
+  --font-mincho: 'Shippori Mincho B1', 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', 'Noto Serif JP', serif;
+  --font-gothic: 'Zen Kaku Gothic New', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Noto Sans JP', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* ---- 文字サイズ（モバイル基準の可変） ---- */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-md: 0.9375rem;
+  --fs-body: clamp(1rem, 0.96rem + 0.18vw, 1.0625rem);
+  --fs-lg: clamp(1.125rem, 1.05rem + 0.4vw, 1.3125rem);
+  --fs-xl: clamp(1.375rem, 1.2rem + 0.9vw, 1.875rem);
+  --fs-2xl: clamp(1.75rem, 1.4rem + 1.8vw, 2.75rem);
+  --fs-3xl: clamp(2.25rem, 1.6rem + 3.2vw, 4.25rem);
+
+  /* ---- 余白 ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --space-9: clamp(4.5rem, 3rem + 6vw, 8rem);
+
+  --gutter: clamp(1.125rem, 0.6rem + 2.6vw, 3rem);
+  --measure: 34em;           /* 本文の行長（全角 34 字前後） */
+  --wide: 76rem;
+
+  --radius: 2px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  color-scheme: light;
+}
+
+/* ---- 紙の地合い（ごく薄いノイズ） ---- */
+:root {
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .3 0 0 0 0 .22 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.38'/%3E%3C/svg%3E");
+}
+
+/* ==========================================================================
+   Reset (minimal)
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: var(--space-6);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ol,
+ul {
+  margin: 0;
+}
+
+ol,
+ul {
+  padding: 0;
+}
+
+img,
+svg,
+picture {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+/* ==========================================================================
+   Base typography（日本語組版）
+   ========================================================================== */
+
+body {
+  min-height: 100dvh;
+  background-color: var(--paper);
+  background-image: var(--grain);
+  color: var(--ink);
+  font-family: var(--font-mincho);
+  font-weight: 500;
+  font-size: var(--fs-body);
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+  font-kerning: normal;
+  line-break: strict;
+  overflow-wrap: anywhere;
+  text-autospace: normal;   /* 和欧間のアキ（対応ブラウザのみ） */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  font-feature-settings: 'palt';
+  word-break: auto-phrase;   /* 文節で改行（Chrome 119+） */
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  transition: color 0.15s var(--ease), text-decoration-color 0.15s var(--ease);
+}
+
+a:hover {
+  color: var(--shu-text);
+  text-decoration-color: currentColor;
+}
+
+:focus-visible {
+  outline: 2px solid var(--shu);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--shu) 22%, var(--paper));
+  color: var(--ink);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: var(--space-6) 0;
+}
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -100px;
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-gothic);
+  font-size: var(--fs-sm);
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: var(--space-2);
+  color: var(--paper);
+}
+
+/* 版面：全幅 / 本文幅 / 広幅 の3レーン */
+.frame {
+  display: grid;
+  grid-template-columns:
+    [full-start] minmax(var(--gutter), 1fr)
+    [wide-start] minmax(0, var(--wide))
+    [wide-end] minmax(var(--gutter), 1fr)
+    [full-end];
+}
+
+.frame > * {
+  grid-column: wide;
+}
+
+.frame > .is-full {
+  grid-column: full;
+}
+
+/* 欧文・数字のメタ情報（タイプライター的なフィールドノート） */
+.mono {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  font-feature-settings: 'zero' 0;
+}
+
+.gothic {
+  font-family: var(--font-gothic);
+  font-weight: 500;
+}
+
+/* 小さな見出しラベル（キッカー） */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-gothic);
+  font-weight: 500;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.18em;
+  color: var(--ink-2);
+}
+
+.kicker::before {
+  content: '';
+  inline-size: 1.75em;
+  block-size: 1px;
+  background: currentColor;
+}
+
+/* ---- 縦書き ---- */
+.tate {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-feature-settings: 'vpal';
+}
+
+.tate .tcy {
+  text-combine-upright: all;
+  -webkit-text-combine: horizontal;
+}
+
+.tate .upright {
+  text-orientation: upright;
+  letter-spacing: 0;
+}
+
+/* ---- ジャンルの色を局所変数に流し込む ---- */
+[data-genre='modern'] { --g: var(--g-modern); }
+[data-genre='past'] { --g: var(--g-past); }
+[data-genre='fantasy'] { --g: var(--g-fantasy); }
+[data-genre='faith'] { --g: var(--g-faith); }
+
+/* ==========================================================================
+   Prose（Markdown 本文）
+   ========================================================================== */
+
+.prose {
+  max-inline-size: var(--measure);
+}
+
+.prose > * + * {
+  margin-block-start: 1.15em;
+}
+
+.prose h3 {
+  margin-block-start: 2em;
+  font-size: var(--fs-lg);
+}
+
+.prose ul,
+.prose ol {
+  padding-inline-start: 1.4em;
+}
+
+.prose li + li {
+  margin-block-start: 0.5em;
+}
+
+.prose li::marker {
+  color: var(--shu);
+}
+
+.prose strong {
+  font-weight: 800;
+  background: linear-gradient(transparent 62%, color-mix(in srgb, var(--shu) 16%, transparent) 62%);
+}
+
+.prose blockquote {
+  padding-inline-start: 1.1em;
+  border-inline-start: 2px solid var(--shu);
+  color: var(--ink-2);
+}
+
+.prose a {
+  color: var(--ai);
+}
+
+.prose a:hover {
+  color: var(--shu-text);
+}
+
+/* 根拠の種類を示すしるし：【史実】【推定】【再現】【創作】【設定】【記録】【伝承】 */
+.prose .basis__tag {
+  display: inline-block;
+  margin-inline-end: 0.6em;
+  padding: 0.05em 0.5em 0.1em;
+  border: 1px solid currentColor;
+  font-family: var(--font-gothic);
+  font-weight: 500;
+  font-size: 0.72em;
+  letter-spacing: 0.12em;
+  line-height: 1.5;
+  vertical-align: 0.15em;
+  color: var(--ink-2);
+}
+
+.prose [data-basis='史実'] .basis__tag { color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.prose [data-basis='推定'] .basis__tag { color: var(--ai); }
+.prose [data-basis='再現'] .basis__tag { color: var(--g-fantasy); }
+.prose [data-basis='創作'] .basis__tag,
+.prose [data-basis='設定'] .basis__tag { color: var(--ai); border-style: dashed; }
+.prose [data-basis='記録'] .basis__tag { color: var(--paper); background: var(--shu-text); border-color: var(--shu-text); }
+.prose [data-basis='伝承'] .basis__tag { color: var(--g-past); }
