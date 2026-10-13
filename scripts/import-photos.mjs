@@ -8,6 +8,7 @@
  * - 向きを補正し、長辺 2400px に縮小
  * - 撮影場所（GPS）などのメタデータをすべて消す（リポジトリは公開なので必須）
  * - src/content/issues/<3桁>/photos/<台所>-<連番>.jpg に保存し、index.md に貼る YAML を表示する
+ * - 取り込んだ元ファイルは photos/.imported.json に記録し、同じ写真を二度取り込まない
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -53,13 +54,24 @@ if (files.length === 0) {
   process.exit(1);
 }
 
+// 取り込み済みの記録（元のファイル名＋サイズ → 保存名）
+const manifestPath = path.join(outDir, '.imported.json');
+const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8').catch(() => '{}'));
+const keyOf = async (file) => `${kitchen}:${path.basename(file)}:${(await fs.stat(file)).size}`;
+
 // すでにある連番の続きから付ける
 const existing = (await fs.readdir(outDir)).map((n) => n.match(new RegExp(`^${kitchen}-(\\d+)\\.jpg$`))?.[1]).filter(Boolean);
 let n = existing.length ? Math.max(...existing.map(Number)) : 0;
 
 const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'dareka-photos-'));
 const added = [];
+let skipped = 0;
 for (const file of files) {
+  const key = await keyOf(file);
+  if (manifest[key]) {
+    skipped += 1;
+    continue;
+  }
   let src = file;
   if (/\.(heic|heif)$/i.test(file)) {
     // sharp の標準ビルドは HEIC を読めないので、macOS の sips で JPEG にしてから処理する
@@ -82,8 +94,15 @@ for (const file of files) {
   const meta = await sharp(path.join(outDir, name)).metadata();
   if (meta.exif || meta.xmp || meta.iptc) throw new Error(`${name} にメタデータが残っています`);
   added.push({ name, from: path.basename(file), w: meta.width, h: meta.height });
+  manifest[key] = name;
 }
 await fs.rm(tmp, { recursive: true, force: true });
+await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+if (skipped) console.log(`（取り込み済みの ${skipped} 枚はとばしました）`);
+if (added.length === 0) {
+  console.log('新しく取り込む写真はありませんでした。');
+  process.exit(0);
+}
 
 console.log(`✓ VOL.${pad3(vol)} に ${added.length} 枚を取り込みました（位置情報などのメタデータは削除済み）`);
 for (const a of added) console.log(`  ${a.from} → photos/${a.name}（${a.w}×${a.h}）`);

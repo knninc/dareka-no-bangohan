@@ -24,6 +24,7 @@
 npm run dev              # 開発サーバー（http://localhost:4321）
 npm run new-issue        # 新しい号のひな形
 npm run import-photos -- <号数> <a|b> <写真>  # 写真の取り込み（位置情報を消す。写真は必ずこれで入れる）
+npm run import-from-drive -- <号数>            # Google ドライブ（パソコン版）の号のフォルダから台所A/Bの写真を一括取り込み
 npm run check            # 号のデータ検査 + astro check
 npm run build            # 本番ビルド（dist/）
 npm run deploy           # 手元から Cloudflare Workers に公開（通常は main への push で自動公開）
