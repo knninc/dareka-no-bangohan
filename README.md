@@ -16,7 +16,7 @@
 - [新しい号を追加する](#新しい号を追加する)
 - [写真を追加する](#写真を追加する)
 - [チェックとビルド](#チェックとビルド)
-- [公開する（静的ホスティング）](#公開する静的ホスティング)
+- [公開する（Cloudflare Workers）](#公開するcloudflare-workers)
 - [デザインと編集の約束](#デザインと編集の約束)
 
 ---
@@ -221,34 +221,30 @@ GitHub Actions（`.github/workflows/ci.yml`）でも、push / pull request の�
 
 ---
 
-## 公開する（静的ホスティング）
+## 公開する（Cloudflare Workers）
 
-ビルド結果は `dist/` の静的ファイルだけです。公開先は **Cloudflare Pages**。GitHub の `main` に push すると、自動でビルドされて公開されます。
+公開先は **Cloudflare Workers（静的アセット）** です。GitHub の `main` に push すると、Cloudflare の Workers Builds が自動でビルドして公開します。
 
-### Cloudflare Pages の設定（最初の1回だけ）
+- 公開URL：https://dareka-no-bangohan.super-bonus-c87c.workers.dev
+- 設定ファイル：`wrangler.jsonc`（`dist/` をそのまま配信。見つからないページは `404.html`）
 
-1. Cloudflare ダッシュボード → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-2. GitHub と連携し、このリポジトリを選ぶ
-3. ビルドの設定：
+### Cloudflare 側の設定（最初の1回だけ）
+
+ダッシュボード → **Workers & Pages** → **Create** → **Import a repository** で `knninc/dareka-no-bangohan` を選び、
 
 | 項目 | 値 |
 | --- | --- |
-| Production branch | `main` |
-| Framework preset | Astro |
+| Project name | `dareka-no-bangohan`（`wrangler.jsonc` の `name` と同じにする） |
 | Build command | `npm run build` |
-| Build output directory | `dist` |
-| 環境変数 | 不要（独自ドメインにしたら `SITE_URL` を設定） |
+| Deploy command | `npx wrangler deploy` |
+| Preview command | `npx wrangler preview`（`main` 以外のブランチのプレビュー） |
 
-4. **Save and Deploy**。`https://<プロジェクト名>.pages.dev` で公開されます。
+### メモ
 
-- Node.js のバージョンは `.nvmrc`（22）が使われます。
-- 公開URL（canonical・OGP・RSS・サイトマップ）は、Cloudflare Pages では `*.pages.dev` を自動で使います。**独自ドメインにしたら** 環境変数 `SITE_URL`（例 `https://example.com`）を設定して再デプロイしてください。
+- 公開URL（canonical・OGP・RSS・サイトマップ）は、Workers Builds でのビルド時に上の workers.dev を使います（`astro.config.mjs` の `PRODUCTION_URL`）。
+- **独自ドメインにしたら**、Cloudflare の Build variables に `SITE_URL`（例 `https://example.com`）を設定して再ビルドしてください。
 - `public/_headers` で、フォントや画像に長期キャッシュが付きます。
-- `main` 以外のブランチや pull request には、プレビュー用のURLが自動で作られます。
-
-### ほかのホスティング
-
-Vercel なども、ビルドコマンド `npm run build`・出力 `dist`・環境変数 `SITE_URL` で同じように公開できます。
+- 手元から直接公開する場合：`npm run deploy`（`wrangler login` 済みであること）。
 
 ## デザインと編集の約束
 

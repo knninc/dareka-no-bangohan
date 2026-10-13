@@ -1,0 +1,14 @@
+// Cloudflare Workers（静的アセットのみ）の設定。
+// GitHub の main に push すると、Workers Builds が `npm run build` → `npx wrangler deploy` で公開する。
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "dareka-no-bangohan",
+  "compatibility_date": "2026-10-13",
+  "assets": {
+    "directory": "./dist/",
+    // 見つからないページは dist/404.html（落丁のお知らせ）を 404 で返す
+    "not_found_handling": "404-page",
+    // /vol/001 → /vol/001/ のように、フォルダの index.html は末尾スラッシュ付きで返す
+    "html_handling": "auto-trailing-slash"
+  }
+}

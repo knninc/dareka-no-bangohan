@@ -2,28 +2,16 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-/**
- * Cloudflare Pages のビルドでは CF_PAGES_URL に「https://<デプロイID>.<プロジェクト>.pages.dev」が入る。
- * デプロイIDを外して、本番の「https://<プロジェクト>.pages.dev」にする。
- */
-function cloudflarePagesUrl() {
-  const m = process.env.CF_PAGES_URL?.match(/^https:\/\/[^.]+\.([^.]+\.pages\.dev)\/?$/);
-  return m ? `https://${m[1]}` : undefined;
-}
+/** 本番の公開URL（Cloudflare Workers の workers.dev）。独自ドメインにしたら SITE_URL で上書きする */
+const PRODUCTION_URL = 'https://dareka-no-bangohan.super-bonus-c87c.workers.dev';
 
 /**
  * 公開URL（canonical・OGP・RSS・サイトマップに使う）。
- * 1. 環境変数 SITE_URL（独自ドメインにしたらここに設定する）
- * 2. Cloudflare Pages の *.pages.dev
- * 3. Vercel の本番URL
- * 4. ローカル
+ * 1. 環境変数 SITE_URL（独自ドメインにしたらビルド変数に設定する）
+ * 2. Cloudflare Workers Builds でのビルド（WORKERS_CI=1）なら本番URL
+ * 3. それ以外（ローカル・GitHub Actions）は localhost
  */
-const site =
-  process.env.SITE_URL ||
-  cloudflarePagesUrl() ||
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : 'http://localhost:4321');
+const site = process.env.SITE_URL || (process.env.WORKERS_CI ? PRODUCTION_URL : 'http://localhost:4321');
 
 /**
  * Fontsource の CSS は woff2 と woff の両方を参照している。

@@ -13,7 +13,8 @@
     "check": "node scripts/check-content.mjs && astro check",
     "check:content": "node scripts/check-content.mjs",
     "new-issue": "node scripts/new-issue.mjs",
-    "astro": "astro"
+    "astro": "astro",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "typescript": "^6.0.3",
+    "wrangler": "^4.150.0",
     "yaml": "^2.9.1"
   },
   "description": "週刊・誰かの晩ごはん — 毎週、誰かの人生を、晩ごはんだけ借りてみる。",

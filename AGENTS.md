@@ -23,6 +23,7 @@ npm run dev              # 開発サーバー（http://localhost:4321）
 npm run new-issue        # 新しい号のひな形
 npm run check            # 号のデータ検査 + astro check
 npm run build            # 本番ビルド（dist/）
+npm run deploy           # 手元から Cloudflare Workers に公開（通常は main への push で自動公開）
 ```
 
 開発サーバーをバックグラウンドで動かすときは `npx astro dev --background`（`astro dev stop` / `status` / `logs`）。
