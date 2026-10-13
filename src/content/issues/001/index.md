@@ -38,7 +38,6 @@ photos:
   - src: ./photos/a-1.jpg
     alt: 台所Aの食卓。白いテーブルに、赤い器のトマたま、しらすと大葉をのせた冷奴、八宝菜、ごはんが並んでいる
     kitchen: a
-    caption: 背景の映り込みを ChatGPT で消しています
   - src: ./photos/b-1.jpg
     alt: 台所Bの食卓。赤いランチョンマットの上に、トマたま、八宝菜、しらすと梅をのせた冷奴、箸置きと箸が並んでいる
     kitchen: b
