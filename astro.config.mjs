@@ -3,11 +3,24 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
 /**
- * 公開URL。本番ビルドでは環境変数 SITE_URL を設定する（例: https://example.com）。
- * 未設定の場合は Vercel の本番URL、最後にローカルURLを使う。
+ * Cloudflare Pages のビルドでは CF_PAGES_URL に「https://<デプロイID>.<プロジェクト>.pages.dev」が入る。
+ * デプロイIDを外して、本番の「https://<プロジェクト>.pages.dev」にする。
+ */
+function cloudflarePagesUrl() {
+  const m = process.env.CF_PAGES_URL?.match(/^https:\/\/[^.]+\.([^.]+\.pages\.dev)\/?$/);
+  return m ? `https://${m[1]}` : undefined;
+}
+
+/**
+ * 公開URL（canonical・OGP・RSS・サイトマップに使う）。
+ * 1. 環境変数 SITE_URL（独自ドメインにしたらここに設定する）
+ * 2. Cloudflare Pages の *.pages.dev
+ * 3. Vercel の本番URL
+ * 4. ローカル
  */
 const site =
   process.env.SITE_URL ||
+  cloudflarePagesUrl() ||
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : 'http://localhost:4321');

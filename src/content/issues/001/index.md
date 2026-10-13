@@ -23,10 +23,9 @@ recipes:
         url: https://www.ajinomoto.co.jp/products/detail/?ProductName=cookdo_10
   - dish: トマたま
     sources:
-      - title: ニチレイのレシピ
-        # 参照したページのURLが確認できたら url: を追加する。
-        # 候補（未確認）: https://www.nichireifoods.co.jp/media/9561/
-        #   「トマトと卵の炒め物レシピ」ほほえみごはん／ニチレイフーズ
+      - title: トマトと卵の炒め物レシピ
+        publisher: ニチレイフーズ「ほほえみごはん」
+        url: https://www.nichireifoods.co.jp/media/9561/
 
 sources:
   - title: Stir-fried tomato and scrambled eggs

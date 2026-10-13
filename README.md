@@ -223,23 +223,32 @@ GitHub Actions（`.github/workflows/ci.yml`）でも、push / pull request の�
 
 ## 公開する（静的ホスティング）
 
-ビルド結果は `dist/` の静的ファイルだけなので、どこでも公開できます。
+ビルド結果は `dist/` の静的ファイルだけです。公開先は **Cloudflare Pages**。GitHub の `main` に push すると、自動でビルドされて公開されます。
 
-| 設定 | 値 |
+### Cloudflare Pages の設定（最初の1回だけ）
+
+1. Cloudflare ダッシュボード → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
+2. GitHub と連携し、このリポジトリを選ぶ
+3. ビルドの設定：
+
+| 項目 | 値 |
 | --- | --- |
-| ビルドコマンド | `npm run build` |
-| 出力ディレクトリ | `dist` |
-| Node.js | 22 |
-| 環境変数 | `SITE_URL` = 公開URL（例 `https://example.com`） |
+| Production branch | `main` |
+| Framework preset | Astro |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| 環境変数 | 不要（独自ドメインにしたら `SITE_URL` を設定） |
 
-`SITE_URL` は canonical・OGP・RSS・サイトマップの URL に使われます。**本番では必ず設定してください**（未設定だと `http://localhost:4321` になります。Vercel では本番URLを自動で使います）。
+4. **Save and Deploy**。`https://<プロジェクト名>.pages.dev` で公開されます。
 
-- **Cloudflare Pages**：リポジトリを接続 → Framework preset「Astro」→ 上の表のとおり設定。`public/_headers` でフォントや画像に長期キャッシュが付きます。
-- **Vercel**：リポジトリを読み込むだけで Astro を自動認識します。
+- Node.js のバージョンは `.nvmrc`（22）が使われます。
+- 公開URL（canonical・OGP・RSS・サイトマップ）は、Cloudflare Pages では `*.pages.dev` を自動で使います。**独自ドメインにしたら** 環境変数 `SITE_URL`（例 `https://example.com`）を設定して再デプロイしてください。
+- `public/_headers` で、フォントや画像に長期キャッシュが付きます。
+- `main` 以外のブランチや pull request には、プレビュー用のURLが自動で作られます。
 
-> 公開先の決定、リポジトリの公開、ドメインの取得は、まだ行っていません。
+### ほかのホスティング
 
----
+Vercel なども、ビルドコマンド `npm run build`・出力 `dist`・環境変数 `SITE_URL` で同じように公開できます。
 
 ## デザインと編集の約束
 
