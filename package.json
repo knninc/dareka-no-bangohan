@@ -14,7 +14,8 @@
     "check:content": "node scripts/check-content.mjs",
     "new-issue": "node scripts/new-issue.mjs",
     "astro": "astro",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "import-photos": "node scripts/import-photos.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

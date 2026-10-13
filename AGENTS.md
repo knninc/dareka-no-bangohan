@@ -12,6 +12,8 @@
 
 - 実際に作った記録と想像上の設定を混ぜない。開催していない号、食べていない感想、参加者の発言、撮っていない写真、未確認のURLを作らない。
 - AI生成画像を料理写真として載せない。
+- 写真は `npm run import-photos` で取り込む（撮影場所などのメタデータを消す。リポジトリは公開）。
+- 写真と感想は、共有の Google ドライブ「週刊・誰かの晩ごはん」の号ごとのフォルダ（台所A/B の写真、「VOL.xxx の記録」ドキュメント）に集まる。
 - 参加者の個人名・プロフィールを載せない（台所A / 台所B）。
 - 集客・収益化・KPI などの目的を勝手に足さない。「特に目的はありません。」
 - 料理ブログのテンプレート、カードUIの羅列、SaaS風のLPにしない。
@@ -21,6 +23,7 @@
 ```sh
 npm run dev              # 開発サーバー（http://localhost:4321）
 npm run new-issue        # 新しい号のひな形
+npm run import-photos -- <号数> <a|b> <写真>  # 写真の取り込み（位置情報を消す。写真は必ずこれで入れる）
 npm run check            # 号のデータ検査 + astro check
 npm run build            # 本番ビルド（dist/）
 npm run deploy           # 手元から Cloudflare Workers に公開（通常は main への push で自動公開）

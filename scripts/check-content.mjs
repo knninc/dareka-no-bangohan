@@ -7,6 +7,7 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import sharp from 'sharp';
 import { readIssues, normDate, pad3, GENRES, BODY_HEADINGS, KITCHENS, ROOT } from './lib.mjs';
 
 const errors = [];
@@ -56,6 +57,24 @@ for (const it of issues) {
     if (p.kitchen && !KITCHENS.includes(p.kitchen)) err(`photos[${i}] の kitchen は ${KITCHENS.join(' / ')} のどれか`);
   }
   if (Array.isArray(d.photos) && d.photos.filter((p) => p?.cover).length > 1) warn('cover: true の写真が2枚以上あります（最初の1枚を使います）');
+
+  // photos/ の画像に撮影場所（GPS）などのメタデータが残っていないか（リポジトリは公開なので必須）
+  const photoDir = path.join(it.dir, 'photos');
+  let photoFiles = [];
+  try {
+    photoFiles = (await fs.readdir(photoDir)).filter((f) => /\.(jpe?g|png|webp|avif|tiff?)$/i.test(f));
+  } catch {
+    /* photos/ がなければ何もしない */
+  }
+  for (const f of photoFiles) {
+    if (/\.(heic|heif)$/i.test(f)) continue;
+    const meta = await sharp(path.join(photoDir, f)).metadata();
+    if (meta.exif || meta.xmp || meta.iptc)
+      err(`photos/${f} に撮影場所などのメタデータが残っています。npm run import-photos で取り込み直してください`);
+  }
+  for (const f of await fs.readdir(photoDir).catch(() => [])) {
+    if (/\.(heic|heif)$/i.test(f)) err(`photos/${f} は HEIC です。npm run import-photos で JPEG にして取り込んでください`);
+  }
 
   const allSources = [...(d.sources ?? []), ...(d.recipes ?? []).flatMap((r) => r?.sources ?? [])];
   for (const s of allSources) {
