@@ -2,23 +2,25 @@
  * コラムの図版。本文に `::fig <名前>` と1行だけ書くと、その位置に入る。
  * frontmatter の `hero` に名前を書くと、扉に入る。
  */
-import HeroReach from './HeroReach.astro';
-import ReachFlow from './ReachFlow.astro';
-import NutrientBoxes from './NutrientBoxes.astro';
-import PfcBars from './PfcBars.astro';
-import RiskCurve from './RiskCurve.astro';
-import Interactions from './Interactions.astro';
+import HeroTray from './HeroTray.astro';
+import BalanceDay from './BalanceDay.astro';
+import Servings from './Servings.astro';
+import WhoChart from './WhoChart.astro';
+import DayPlan from './DayPlan.astro';
+import Protein from './Protein.astro';
 import SaltMeter from './SaltMeter.astro';
+import Interactions from './Interactions.astro';
 import Errata from './Errata.astro';
 
 export const FIGURES = {
-  'hero-reach': HeroReach,
-  flow: ReachFlow,
-  nutrients: NutrientBoxes,
-  pfc: PfcBars,
-  risk: RiskCurve,
-  interactions: Interactions,
+  'hero-tray': HeroTray,
+  balance: BalanceDay,
+  servings: Servings,
+  who: WhoChart,
+  day: DayPlan,
+  protein: Protein,
   salt: SaltMeter,
+  interactions: Interactions,
   errata: Errata,
 } as const;
 

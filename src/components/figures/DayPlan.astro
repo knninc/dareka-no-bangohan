@@ -1,0 +1,256 @@
+---
+import FigFrame from './FigFrame.astro';
+import FoodIcon from './FoodIcon.astro';
+import { GROUPS, groupBy, type GroupKey } from './balance';
+import type { FoodName } from './foods';
+/**
+ * 図：基本形で1日を組み立てた一例。
+ * 料理と「つ」は食事バランスガイドの料理例から。栄養計算した献立ではない。
+ */
+type Dish = { label: string; icon: FoodName; g: GroupKey; sv: number };
+const meals: { name: string; dishes: Dish[] }[] = [
+  {
+    name: '朝',
+    dishes: [
+      { label: 'ごはん中盛り1杯', icon: 'rice', g: 'staple', sv: 1.5 },
+      { label: '納豆', icon: 'natto', g: 'main', sv: 1 },
+      { label: 'ほうれん草のお浸し', icon: 'ohitashi', g: 'side', sv: 1 },
+      { label: '具たくさん味噌汁', icon: 'miso', g: 'side', sv: 1 },
+    ],
+  },
+  {
+    name: '昼',
+    dishes: [
+      { label: 'スパゲッティー', icon: 'pasta', g: 'staple', sv: 2 },
+      { label: '野菜サラダ', icon: 'salad', g: 'side', sv: 1 },
+      { label: 'ヨーグルト1パック', icon: 'yogurt', g: 'milk', sv: 1 },
+    ],
+  },
+  {
+    name: '夜',
+    dishes: [
+      { label: 'ごはん中盛り1杯', icon: 'rice', g: 'staple', sv: 1.5 },
+      { label: '焼き魚', icon: 'fish', g: 'main', sv: 2 },
+      { label: '冷奴', icon: 'tofu', g: 'main', sv: 1 },
+      { label: '野菜の煮物', icon: 'nimono', g: 'side', sv: 2 },
+    ],
+  },
+  {
+    name: '間食',
+    dishes: [
+      { label: '牛乳コップ半分', icon: 'milk', g: 'milk', sv: 1 },
+      { label: 'みかん1個', icon: 'mikan', g: 'fruit', sv: 1 },
+      { label: 'りんご半分', icon: 'apple', g: 'fruit', sv: 1 },
+    ],
+  },
+];
+const total = (k: GroupKey) => meals.flatMap((m) => m.dishes).filter((d) => d.g === k).reduce((a, d) => a + d.sv, 0);
+const MAXN = 8;
+const fmt = (n: number) => String(n);
+---
+
+<FigFrame
+  no={4}
+  title="基本形で、1日を組み立ててみる"
+  caption="「食事バランスガイド」の料理例を組み合わせた一例です。分量を量って栄養計算した献立ではありません。"
+>
+  <div class="day">
+    <ol class="day__meals">
+      {
+        meals.map((m) => (
+          <li class="day__meal">
+            <p class="day__name">{m.name}</p>
+            <ul class="day__dishes">
+              {m.dishes.map((d) => {
+                const g = groupBy(d.g);
+                return (
+                  <li class="day__dish" style={`--c:${g.color}`}>
+                    <FoodIcon name={d.icon} size="2.8rem" />
+                    <span class="day__label">{d.label}</span>
+                    <span class="day__tag">
+                      {g.short} <span class="mono">{fmt(d.sv)}</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="day__tally">
+      <p class="day__tally-title">1日の合計と、基本形の目安</p>
+      <ul class="day__bars">
+        {
+          GROUPS.map((g) => {
+            const n = total(g.key);
+            const [lo, hi] = g.range.base;
+            return (
+              <li style={`--c:${g.color}`}>
+                <span class="day__bar-name">{g.short}</span>
+                <span class="day__bar" aria-hidden="true">
+                  <span class="day__bar-range" style={`inset-inline-start:calc(${((lo - 1) / MAXN) * 100}% - 3px);inline-size:calc(${((hi - lo + 1) / MAXN) * 100}% + 3px)`} />
+                  {Array.from({ length: MAXN }, (_, i) => (
+                    <span class:list={['day__cell', i < n && 'is-on', i < n && i + 1 > n && 'is-half']} />
+                  ))}
+                </span>
+                <span class="day__bar-n">
+                  <span class="mono">{fmt(n)}</span>
+                  <small>
+                    （目安 <span class="mono">{g.sv.base}</span>）
+                  </small>
+                </span>
+              </li>
+            );
+          })
+        }
+      </ul>
+      <p class="day__ok">5つの料理区分すべてが、目安の範囲に入っています。</p>
+    </div>
+  </div>
+</FigFrame>
+
+<style>
+  .day {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .day__meals {
+    list-style: none;
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .day__meal {
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    gap: var(--space-2);
+    padding-block-end: var(--space-3);
+    border-block-end: 1px dotted var(--rule);
+  }
+
+  .day__name {
+    display: grid;
+    place-items: center;
+    align-self: start;
+    block-size: 2.4rem;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    letter-spacing: 0;
+    margin-block-start: 0.5rem;
+  }
+
+  .day__dishes {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .day__dish {
+    display: grid;
+    justify-items: center;
+    gap: 0.15rem;
+    inline-size: 4.6rem;
+    text-align: center;
+  }
+
+  .day__label {
+    font-family: var(--font-gothic);
+    font-size: 0.6875rem;
+    line-height: 1.35;
+  }
+
+  .day__tag {
+    padding: 0 0.45em;
+    background: var(--c);
+    color: var(--paper);
+    font-family: var(--font-gothic);
+    font-size: 0.625rem;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+
+  .day__tally {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+  }
+
+  .day__tally-title {
+    font-family: var(--font-gothic);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.06em;
+  }
+
+  .day__bars {
+    list-style: none;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .day__bars li {
+    display: grid;
+    grid-template-columns: 2.4em 1fr auto;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .day__bar-name {
+    font-weight: 800;
+    font-size: var(--fs-sm);
+    color: var(--c);
+  }
+
+  .day__bar {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+    padding-block: 5px;
+  }
+
+  .day__bar-range {
+    position: absolute;
+    inset-block: 0;
+    border: 1.5px dashed var(--c);
+    border-radius: 3px;
+  }
+
+  .day__cell {
+    block-size: 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+  }
+
+  .day__cell.is-on {
+    background: var(--c);
+    border-color: var(--c);
+  }
+
+  .day__cell.is-half {
+    background: linear-gradient(90deg, var(--c) 50%, transparent 50%);
+  }
+
+  .day__bar-n {
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+  }
+
+  .day__bar-n small {
+    font-family: var(--font-gothic);
+    font-size: 0.625rem;
+    color: var(--ink-2);
+  }
+
+  .day__ok {
+    font-size: var(--fs-sm);
+    color: var(--ai);
+  }
+</style>

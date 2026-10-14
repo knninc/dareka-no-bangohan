@@ -1,0 +1,74 @@
+---
+import FoodIcon from './FoodIcon.astro';
+/** 扉の図：一食のお膳。主食・主菜・副菜・汁物 */
+const items = [
+  { icon: 'ohitashi', label: '副菜', color: 'var(--g-fantasy)', area: 'a' },
+  { icon: 'fish', label: '主菜', color: 'var(--shu-text)', area: 'b' },
+  { icon: 'rice', label: '主食', color: 'var(--g-past)', area: 'c' },
+  { icon: 'miso', label: '汁物（副菜）', color: 'var(--g-fantasy)', area: 'd' },
+] as const;
+---
+
+<figure class="tray" aria-label="一食のお膳の例。主食のごはん、主菜の焼き魚、副菜のお浸し、汁物の味噌汁">
+  <div class="tray__board">
+    {
+      items.map((it) => (
+        <div class="tray__item" style={`grid-area:${it.area}`}>
+          <FoodIcon name={it.icon} size="clamp(4.5rem, 3.6rem + 3vw, 5.5rem)" />
+          <span class="tray__label" style={`--c:${it.color}`}>{it.label}</span>
+        </div>
+      ))
+    }
+  </div>
+  <figcaption class="tray__cap">主食・主菜・副菜をそろえると、数えやすい。</figcaption>
+</figure>
+
+<style>
+  .tray {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .tray__board {
+    display: grid;
+    grid-template-areas:
+      'a b'
+      'c d';
+    gap: var(--space-3) var(--space-4);
+    justify-items: center;
+    padding: var(--space-5) var(--space-4);
+    border: 2px solid var(--ink);
+    border-radius: 6px;
+    background: #c4955c;
+    box-shadow:
+      inset 0 0 0 6px #b5844b,
+      inset 0 0 0 8px var(--ink),
+      5px 5px 0 0 color-mix(in srgb, var(--shu) 55%, transparent);
+  }
+
+  .tray__item {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-1);
+  }
+
+  .tray__label {
+    padding: 0.05em 0.6em 0.1em;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    color: var(--c);
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  .tray__cap {
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+    text-align: center;
+  }
+</style>

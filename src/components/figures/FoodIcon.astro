@@ -1,0 +1,321 @@
+---
+/**
+ * 食べものの線画（SVG）。墨の線に、紙・藍・朱などの色を差す。
+ * 写真ではなく、説明のための挿絵。
+ */
+import type { FoodName } from './foods';
+
+interface Props {
+  name: FoodName;
+  /** 表示サイズ（CSS の長さ） */
+  size?: string;
+  /** 読み上げ用の名前。省略すると装飾扱い */
+  label?: string;
+}
+const { name, size = '3.5rem', label } = Astro.props;
+---
+
+<svg
+  class="food"
+  viewBox="0 0 64 64"
+  width="64"
+  height="64"
+  style={`--size:${size}`}
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+>
+  {
+    name === 'rice' && (
+      <g>
+        <path d="M13 31 C14 17 50 17 51 31 Z" class="f-white" />
+        <path d="M24 22 l2 -1 M33 20 l2 1 M40 24 l2 -1 M28 27 l2 0" class="f-line-thin" />
+        <path d="M9 31 H55 A23 21 0 0 1 9 31 Z" class="f-ai" />
+        <path d="M14 38 H50" class="f-line-paper" />
+        <rect x="24" y="50" width="16" height="5" rx="1.5" class="f-ai" />
+      </g>
+    )
+  }
+  {
+    name === 'onigiri' && (
+      <g>
+        <path d="M32 9 C39 9 57 40 55 48 C53 56 11 56 9 48 C7 40 25 9 32 9 Z" class="f-white" />
+        <path d="M21 37 H43 V55 C36 56 28 56 21 55 Z" class="f-ink" />
+        <circle cx="32" cy="28" r="3.2" class="f-shu" />
+      </g>
+    )
+  }
+  {
+    name === 'bread' && (
+      <g>
+        <path d="M11 27 C6 13 22 7 32 12 C42 7 58 13 53 27 V55 H11 Z" class="f-crust" />
+        <path d="M16 28 C13 18 24 14 32 18 C40 14 51 18 48 28 V51 H16 Z" class="f-crumb" />
+      </g>
+    )
+  }
+  {
+    name === 'noodles' && (
+      <g>
+        <path d="M17 12 L26 27 M24 9 L31 26" class="f-line" />
+        <ellipse cx="32" cy="30" rx="24" ry="6" class="f-broth" />
+        <path d="M14 29 q4 -3 8 0 t8 0 t8 0 t8 0 t6 0" class="f-line-thin" />
+        <path d="M18 31 q4 -3 8 0 t8 0 t8 0 t6 0" class="f-line-thin" />
+        <path d="M8 30 H56 A24 21 0 0 1 8 30 Z" class="f-shu" />
+        <path d="M12 37 H52" class="f-line-paper" />
+        <rect x="23" y="49" width="18" height="5" rx="1.5" class="f-shu" />
+      </g>
+    )
+  }
+  {
+    name === 'pasta' && (
+      <g>
+        <ellipse cx="32" cy="44" rx="28" ry="12" class="f-white" />
+        <ellipse cx="32" cy="44" rx="20" ry="7.5" class="f-line-thin" />
+        <path d="M16 42 C14 28 50 26 48 42 C42 48 22 48 16 42 Z" class="f-noodle" />
+        <path d="M20 38 c6 -6 14 4 20 -2 M22 42 c6 -5 12 3 20 -1 M26 33 c4 -3 8 2 12 0" class="f-line-thin" />
+        <path d="M27 31 c3 -4 9 -3 10 1 c-2 3 -8 3 -10 -1 Z" class="f-shu" />
+      </g>
+    )
+  }
+  {
+    name === 'salad' && (
+      <g>
+        <circle cx="22" cy="25" r="9" class="f-green" />
+        <circle cx="38" cy="22" r="10" class="f-green-2" />
+        <circle cx="45" cy="30" r="5.5" class="f-shu" />
+        <path d="M30 24 c3 4 8 5 12 3" class="f-line-thin" />
+        <path d="M7 31 H57 A25 22 0 0 1 7 31 Z" class="f-white" />
+        <path d="M11 37 H53" class="f-line-ai" />
+      </g>
+    )
+  }
+  {
+    name === 'miso' && (
+      <g>
+        <ellipse cx="32" cy="28" rx="23" ry="6" class="f-soup" />
+        <rect x="20" y="25" width="6" height="5" class="f-white" />
+        <rect x="35" y="24" width="6" height="5" class="f-white" />
+        <path d="M27 30 c3 -3 6 -3 8 0" class="f-green-line" />
+        <path d="M9 28 H55 A23 22 0 0 1 9 28 Z" class="f-lacquer" />
+        <path d="M13 34 H51" class="f-line-paper" />
+        <rect x="24" y="49" width="16" height="5" rx="1.5" class="f-lacquer" />
+      </g>
+    )
+  }
+  {
+    name === 'ohitashi' && (
+      <g>
+        <path d="M20 34 C18 20 46 18 44 34 Z" class="f-green" />
+        <path d="M26 26 l3 4 M33 23 l1 6 M39 26 l-2 5" class="f-line-thin" />
+        <circle cx="30" cy="22" r="1.6" class="f-crust" />
+        <circle cx="36" cy="24" r="1.4" class="f-crust" />
+        <path d="M12 34 H52 L46 52 H18 Z" class="f-ai" />
+        <path d="M15 40 H49" class="f-line-paper" />
+      </g>
+    )
+  }
+  {
+    name === 'nimono' && (
+      <g>
+        <circle cx="24" cy="28" r="7" class="f-crust" />
+        <rect x="30" y="20" width="12" height="9" rx="2" class="f-carrot" />
+        <circle cx="40" cy="31" r="5" class="f-crust" />
+        <path d="M18 22 l4 -6 M45 22 l3 -5" class="f-green-line" />
+        <path d="M8 32 H56 A24 18 0 0 1 8 32 Z" class="f-white" />
+        <path d="M12 38 H52" class="f-line-ai" />
+      </g>
+    )
+  }
+  {
+    name === 'fish' && (
+      <g>
+        <ellipse cx="32" cy="44" rx="29" ry="11" class="f-white" />
+        <path d="M10 36 C18 26 38 24 48 34 L58 27 L56 40 L58 50 L48 42 C38 50 18 48 10 40 Z" class="f-fish" />
+        <circle cx="16" cy="37" r="2" class="f-ink" />
+        <path d="M24 33 l4 9 M31 32 l4 10 M38 33 l4 9" class="f-line" />
+        <path d="M44 52 a7 7 0 0 1 12 -3 Z" class="f-yellow" />
+      </g>
+    )
+  }
+  {
+    name === 'tofu' && (
+      <g>
+        <ellipse cx="32" cy="47" rx="26" ry="9" class="f-ai" />
+        <path d="M18 30 L30 24 L46 28 L34 34 Z" class="f-white" />
+        <path d="M18 30 V44 L34 49 V34 Z" class="f-white-2" />
+        <path d="M34 34 V49 L46 43 V28 Z" class="f-white-3" />
+        <circle cx="28" cy="28" r="1.6" class="f-green" />
+        <circle cx="33" cy="27" r="1.6" class="f-green" />
+        <circle cx="37" cy="30" r="1.6" class="f-green" />
+        <path d="M30 22 c2 -3 6 -3 7 0" class="f-yellow-line" />
+      </g>
+    )
+  }
+  {
+    name === 'natto' && (
+      <g>
+        <path d="M8 26 L14 50 H50 L56 26 Z" class="f-white" />
+        <path d="M6 26 H58" class="f-line" />
+        <path d="M10 26 L18 10 H46 L54 26" class="f-lid" />
+        {[16, 24, 32, 40, 48, 20, 28, 36, 44].map((x, i) => (
+          <circle cx={x} cy={i < 5 ? 33 : 41} r="4" class="f-bean" />
+        ))}
+      </g>
+    )
+  }
+  {
+    name === 'egg' && (
+      <g>
+        <path d="M14 34 C8 22 22 12 32 16 C44 10 58 22 52 34 C58 46 44 54 32 50 C20 56 6 46 14 34 Z" class="f-white" />
+        <circle cx="31" cy="33" r="9" class="f-yellow" />
+        <path d="M27 29 a5 5 0 0 1 5 -2" class="f-line-paper" />
+      </g>
+    )
+  }
+  {
+    name === 'karaage' && (
+      <g>
+        <ellipse cx="32" cy="46" rx="28" ry="10" class="f-white" />
+        <path d="M8 40 c6 -12 16 -10 18 -2" class="f-green" />
+        <path d="M16 36 C14 26 30 24 30 34 C32 42 18 44 16 36 Z" class="f-fried" />
+        <path d="M30 32 C30 20 48 20 46 32 C46 42 30 42 30 32 Z" class="f-fried" />
+        <path d="M24 44 C22 34 40 32 40 42 C40 50 26 52 24 44 Z" class="f-fried" />
+        <path d="M46 46 a8 8 0 0 1 12 -6 Z" class="f-yellow" />
+      </g>
+    )
+  }
+  {
+    name === 'chicken' && (
+      <g>
+        <ellipse cx="32" cy="46" rx="28" ry="10" class="f-white" />
+        <path d="M12 38 C10 24 34 18 48 26 C58 32 54 46 40 46 C28 48 14 48 12 38 Z" class="f-meat" />
+        <path d="M22 32 c6 -3 14 -4 22 -1 M20 39 c8 -2 18 -2 26 1" class="f-line-thin" />
+      </g>
+    )
+  }
+  {
+    name === 'milk' && (
+      <g>
+        <path d="M18 10 H46 L42 56 H22 Z" class="f-glass" />
+        <path d="M19.5 22 H44.5 L42 56 H22 Z" class="f-white" />
+        <path d="M24 28 V48" class="f-line-paper" />
+      </g>
+    )
+  }
+  {
+    name === 'milkbottle' && (
+      <g>
+        <path d="M24 8 H40 V16 C40 22 48 24 48 32 V54 C48 57 46 58 44 58 H20 C18 58 16 57 16 54 V32 C16 24 24 22 24 16 Z" class="f-white" />
+        <rect x="23" y="5" width="18" height="6" rx="2" class="f-ai" />
+        <rect x="16" y="36" width="32" height="12" class="f-ai" />
+        <path d="M24 42 H40" class="f-line-paper" />
+      </g>
+    )
+  }
+  {
+    name === 'yogurt' && (
+      <g>
+        <path d="M14 22 H50 L46 56 H18 Z" class="f-white" />
+        <path d="M15.5 34 H48.5 L47.4 43 H16.6 Z" class="f-ai" />
+        <ellipse cx="32" cy="22" rx="18" ry="4" class="f-white" />
+        <path d="M38 22 L52 6" class="f-line" />
+        <ellipse cx="53" cy="5" rx="3" ry="2" class="f-white" />
+      </g>
+    )
+  }
+  {
+    name === 'cheese' && (
+      <g>
+        <path d="M8 44 L52 22 L56 34 V50 L10 56 Z" class="f-yellow" />
+        <path d="M8 44 L56 34" class="f-line" />
+        <circle cx="22" cy="48" r="3" class="f-hole" />
+        <circle cx="40" cy="46" r="2.4" class="f-hole" />
+        <circle cx="48" cy="40" r="1.8" class="f-hole" />
+      </g>
+    )
+  }
+  {
+    name === 'mikan' && (
+      <g>
+        <ellipse cx="32" cy="38" rx="22" ry="19" class="f-orange" />
+        <path d="M30 20 c-6 -8 -16 -6 -18 -2 c6 4 12 4 18 2 Z" class="f-green" />
+        <circle cx="32" cy="20" r="2.4" class="f-green-dark" />
+        <path d="M22 34 c2 -4 6 -6 9 -6" class="f-line-paper" />
+      </g>
+    )
+  }
+  {
+    name === 'apple' && (
+      <g>
+        <path d="M32 20 C24 12 8 16 10 34 C12 50 24 58 32 54 C40 58 52 50 54 34 C56 16 40 12 32 20 Z" class="f-shu" />
+        <path d="M32 20 C32 14 34 10 37 7" class="f-line" />
+        <path d="M35 13 c4 -6 12 -6 14 -4 c-4 6 -10 6 -14 4 Z" class="f-green" />
+        <path d="M18 30 c1 -5 4 -8 8 -9" class="f-line-paper" />
+      </g>
+    )
+  }
+  {
+    name === 'grapes' && (
+      <g>
+        <path d="M32 6 V14" class="f-line" />
+        <path d="M33 10 c6 -6 14 -4 16 0 c-6 4 -12 4 -16 0 Z" class="f-green" />
+        {[[20, 20], [32, 18], [44, 20], [26, 30], [38, 30], [20, 40], [32, 40], [44, 40], [26, 50], [38, 50], [32, 59]].map(([x, y]) => (
+          <circle cx={x} cy={y} r="6" class="f-grape" />
+        ))}
+      </g>
+    )
+  }
+</svg>
+
+<style>
+  .food {
+    inline-size: var(--size);
+    block-size: var(--size);
+    flex: none;
+    overflow: visible;
+    stroke: var(--ink);
+    stroke-width: 2.2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    --c-yellow: #e6a62c;
+    --c-orange: #e3742a;
+    --c-green: #4e8a47;
+    --c-green-2: #7aa65a;
+    --c-crust: #b8793c;
+    --c-fried: #b5672b;
+  }
+
+  .f-white { fill: #fbf8f1; }
+  .f-white-2 { fill: #ece5d6; }
+  .f-white-3 { fill: #ddd3bf; }
+  .f-ai { fill: var(--ai); }
+  .f-shu { fill: var(--shu); }
+  .f-ink { fill: var(--ink); }
+  .f-green { fill: var(--c-green); }
+  .f-green-2 { fill: var(--c-green-2); }
+  .f-green-dark { fill: var(--g-fantasy); }
+  .f-yellow { fill: var(--c-yellow); }
+  .f-orange { fill: var(--c-orange); }
+  .f-crust { fill: var(--c-crust); }
+  .f-crumb { fill: #f3e2bd; }
+  .f-noodle { fill: #f0cf7a; }
+  .f-broth { fill: #e2bd72; }
+  .f-soup { fill: #c99556; }
+  .f-lacquer { fill: #7a2e22; }
+  .f-carrot { fill: var(--c-orange); }
+  .f-fish { fill: #9aa7b8; }
+  .f-fried { fill: var(--c-fried); }
+  .f-meat { fill: #efc3a6; }
+  .f-bean { fill: #a36a2f; }
+  .f-lid { fill: #f3ecdc; }
+  .f-grape { fill: #7c4271; }
+  .f-hole { fill: #c98a1c; stroke-width: 1.4; }
+  .f-glass { fill: color-mix(in srgb, var(--ai) 10%, #fbf8f1); }
+
+  .f-line { fill: none; }
+  .f-line-thin { fill: none; stroke-width: 1.4; }
+  .f-line-paper { fill: none; stroke: #fbf8f1; stroke-width: 2; opacity: 0.85; }
+  .f-line-ai { fill: none; stroke: var(--ai); stroke-width: 2.4; }
+  .f-green-line { fill: none; stroke: var(--c-green); stroke-width: 2.6; }
+  .f-yellow-line { fill: none; stroke: var(--c-yellow); stroke-width: 2.6; }
+</style>

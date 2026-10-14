@@ -1,0 +1,191 @@
+---
+import FigFrame from './FigFrame.astro';
+import FoodIcon from './FoodIcon.astro';
+import type { FoodName } from './foods';
+/** 図：たんぱく質は1日何g？ 食べものだと？ */
+const MAX = 24;
+const foods: { icon: FoodName; label: string; text: string; lo: number; hi: number; open?: boolean }[] = [
+  { icon: 'egg', label: '卵1個', text: '約6g', lo: 6, hi: 6 },
+  { icon: 'natto', label: '納豆1パック', text: '約7〜9g', lo: 7, hi: 9 },
+  { icon: 'chicken', label: '鶏肉100g', text: '十数〜20g超', lo: 12, hi: 21, open: true },
+  { icon: 'fish', label: '魚100g', text: '十数〜20g超', lo: 12, hi: 21, open: true },
+];
+const pct = (n: number) => `${(n / MAX) * 100}%`;
+---
+
+<FigFrame
+  no={5}
+  title="たんぱく質は、1日に何g？"
+  caption="推奨量は「日本人の食事摂取基準（2025年版）」の18〜49歳の値。食品の量はおおよその目安で、種類や部位、調理のしかたで変わります。"
+>
+  <div class="pr">
+    <div class="pr__targets">
+      <p class="pr__t">
+        <span class="pr__who">女性</span>
+        <span class="pr__g mono">50<small>g</small></span>
+      </p>
+      <p class="pr__t">
+        <span class="pr__who">男性</span>
+        <span class="pr__g mono">65<small>g</small></span>
+      </p>
+      <p class="pr__note">1日の推奨量（18〜49歳）</p>
+    </div>
+
+    <ul class="pr__foods">
+      {
+        foods.map((f) => (
+          <li class="pr__food">
+            <FoodIcon name={f.icon} size="2.8rem" />
+            <span class="pr__label">
+              {f.label}
+              <strong class="mono">{f.text}</strong>
+            </span>
+            <span class="pr__bar" aria-hidden="true">
+              <span
+                class:list={['pr__fill', f.open && 'is-open']}
+                style={`inset-inline-start:${f.lo === f.hi ? '0%' : pct(0)};inline-size:${pct(f.hi)};--lo:${(f.lo / f.hi) * 100}%`}
+              />
+            </span>
+          </li>
+        ))
+      }
+      <li class="pr__scale" aria-hidden="true">
+        <span />
+        <span class="pr__ticks">
+          {[0, 6, 12, 18, 24].map((n) => <span class="mono" style={`inset-inline-start:${pct(n)}`}>{n}g</span>)}
+        </span>
+      </li>
+    </ul>
+
+    <p class="pr__sv">
+      <span class="pr__sv-tag">主菜 <span class="mono">1</span>つ</span>
+      ＝ たんぱく質 約<span class="mono">6</span>g が目安
+    </p>
+  </div>
+</FigFrame>
+
+<style>
+  .pr {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .pr__targets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-2) var(--space-6);
+    padding-block-end: var(--space-3);
+    border-block-end: 1px solid var(--ink);
+  }
+
+  .pr__t {
+    display: grid;
+    line-height: 1.1;
+  }
+
+  .pr__who {
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.2em;
+    color: var(--ink-2);
+  }
+
+  .pr__g {
+    font-size: 2.6rem;
+    color: var(--shu-text);
+  }
+
+  .pr__g small {
+    font-size: 0.45em;
+    margin-inline-start: 0.1em;
+  }
+
+  .pr__note {
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+    padding-block-end: 0.4rem;
+  }
+
+  .pr__foods {
+    list-style: none;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .pr__food,
+  .pr__scale {
+    display: grid;
+    grid-template-columns: 2.8rem 7.5rem 1fr;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .pr__scale {
+    grid-template-columns: calc(2.8rem + 7.5rem + var(--space-2)) 1fr;
+  }
+
+  .pr__label {
+    display: grid;
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+  }
+
+  .pr__label strong {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--shu-text);
+  }
+
+  .pr__bar {
+    position: relative;
+    block-size: 1.1rem;
+    border-inline-start: 1.5px solid var(--ink);
+  }
+
+  .pr__fill {
+    position: absolute;
+    inset-block: 0;
+    background: linear-gradient(90deg, var(--shu) var(--lo), color-mix(in srgb, var(--shu) 40%, transparent) var(--lo));
+  }
+
+  .pr__fill.is-open {
+    mask-image: linear-gradient(90deg, #000 85%, transparent);
+  }
+
+  .pr__ticks {
+    position: relative;
+    block-size: 1rem;
+  }
+
+  .pr__ticks span {
+    position: absolute;
+    translate: -50% 0;
+    font-size: 0.625rem;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .pr__sv {
+    font-size: var(--fs-sm);
+  }
+
+  .pr__sv-tag {
+    padding: 0.05em 0.5em;
+    background: var(--shu-text);
+    color: var(--paper);
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+  }
+
+  @media (max-width: 26rem) {
+    .pr__food {
+      grid-template-columns: 2.8rem 6.2rem 1fr;
+    }
+    .pr__scale {
+      grid-template-columns: calc(2.8rem + 6.2rem + var(--space-2)) 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,134 @@
+---
+import FigFrame from './FigFrame.astro';
+import FoodIcon from './FoodIcon.astro';
+import { GROUPS } from './balance';
+/** 図：1日分の目安（食事バランスガイドの基本形） */
+---
+
+<FigFrame
+  no={1}
+  title="1日に、なにを、どれだけ（基本形）"
+  caption="厚生労働省・農林水産省「食事バランスガイド」の基本形（1日 2,200kcal±200kcal）。「つ（SV）」は料理の数え方。健康な人の健康づくりのための目安です。"
+>
+  <ol class="bd">
+    {
+      GROUPS.map((g) => (
+        <li class="bd__row" style={`--c:${g.color}`}>
+          <div class="bd__count">
+            <span class="bd__n mono">{g.sv.base}</span>
+            <span class="bd__unit">つ</span>
+          </div>
+          <div class="bd__main">
+            <p class="bd__name">
+              {g.name}
+              {g.sub && <small>{g.sub}</small>}
+            </p>
+            <p class="bd__hint">{g.hint}</p>
+          </div>
+          <div class="bd__icons" aria-hidden="true">
+            {g.icons.map((i) => <FoodIcon name={i} size="2.6rem" />)}
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+  <p class="bd__extra">
+    <span><strong>お菓子・ジュース・お酒</strong>は 1日200kcal程度まで。</span>
+    <span><strong>水・お茶</strong>は、しっかり。</span>
+  </p>
+</FigFrame>
+
+<style>
+  .bd {
+    list-style: none;
+    display: grid;
+    border-block-start: 1.5px solid var(--ink);
+  }
+
+  .bd__row {
+    display: grid;
+    grid-template-columns: 4.6rem 1fr;
+    grid-template-areas:
+      'count main'
+      'count icons';
+    gap: var(--space-1) var(--space-3);
+    align-items: center;
+    padding-block: var(--space-3);
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .bd__count {
+    grid-area: count;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    align-self: stretch;
+    padding: var(--space-2) 0;
+    background: var(--c);
+    color: var(--paper);
+    line-height: 1.1;
+  }
+
+  .bd__n {
+    font-size: 1.45rem;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .bd__unit {
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+  }
+
+  .bd__main {
+    grid-area: main;
+  }
+
+  .bd__name {
+    font-weight: 800;
+    font-size: var(--fs-lg);
+    line-height: 1.4;
+    color: var(--c);
+  }
+
+  .bd__name small {
+    margin-inline-start: 0.6em;
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+
+  .bd__hint {
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+  }
+
+  .bd__icons {
+    grid-area: icons;
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .bd__extra {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-5);
+    margin-block-start: var(--space-3);
+    font-size: var(--fs-sm);
+  }
+
+  @media (min-width: 48rem) {
+    .bd__row {
+      grid-template-columns: 5.5rem 1fr auto;
+      grid-template-areas: 'count main icons';
+      gap: var(--space-4);
+    }
+    .bd__n {
+      font-size: 1.75rem;
+    }
+    .bd__icons :global(.food) {
+      --size: 3.2rem !important;
+    }
+  }
+</style>

@@ -1,0 +1,179 @@
+---
+import FigFrame from './FigFrame.astro';
+import FoodIcon from './FoodIcon.astro';
+import { groupBy, type GroupKey } from './balance';
+import type { FoodName } from './foods';
+/** 図：「1つ」はどのくらい？（食事バランスガイドの料理例） */
+type Item = { label: string; icon?: FoodName };
+const rows: { key: GroupKey; steps: { n: string; items: Item[] }[] }[] = [
+  {
+    key: 'staple',
+    steps: [
+      { n: '1', items: [{ label: 'ごはん小盛り1杯', icon: 'rice' }, { label: 'おにぎり1個', icon: 'onigiri' }, { label: '食パン1枚', icon: 'bread' }, { label: 'ロールパン2個' }] },
+      { n: '1.5', items: [{ label: 'ごはん中盛り1杯', icon: 'rice' }] },
+      { n: '2', items: [{ label: 'うどん1杯', icon: 'noodles' }, { label: 'スパゲッティー', icon: 'pasta' }, { label: 'もりそば1杯' }] },
+    ],
+  },
+  {
+    key: 'side',
+    steps: [
+      { n: '1', items: [{ label: '野菜サラダ', icon: 'salad' }, { label: 'ほうれん草のお浸し', icon: 'ohitashi' }, { label: '具たくさん味噌汁', icon: 'miso' }, { label: 'ひじきの煮物、煮豆、きのこソテー、酢の物など' }] },
+      { n: '2', items: [{ label: '野菜の煮物', icon: 'nimono' }, { label: '野菜炒め、芋の煮っころがし' }] },
+    ],
+  },
+  {
+    key: 'main',
+    steps: [
+      { n: '1', items: [{ label: '冷奴', icon: 'tofu' }, { label: '納豆', icon: 'natto' }, { label: '目玉焼き一皿', icon: 'egg' }] },
+      { n: '2', items: [{ label: '焼き魚', icon: 'fish' }, { label: '魚の天ぷら、まぐろとイカの刺身' }] },
+      { n: '3', items: [{ label: '鶏肉のから揚げ', icon: 'karaage' }, { label: 'ハンバーグステーキ、豚肉のしょうが焼き' }] },
+    ],
+  },
+  {
+    key: 'milk',
+    steps: [
+      { n: '1', items: [{ label: '牛乳コップ半分', icon: 'milk' }, { label: 'ヨーグルト1パック', icon: 'yogurt' }, { label: 'チーズ1かけ', icon: 'cheese' }, { label: 'スライスチーズ1枚' }] },
+      { n: '2', items: [{ label: '牛乳瓶1本分', icon: 'milkbottle' }] },
+    ],
+  },
+  {
+    key: 'fruit',
+    steps: [
+      { n: '1', items: [{ label: 'みかん1個', icon: 'mikan' }, { label: 'りんご半分', icon: 'apple' }, { label: 'ぶどう半房', icon: 'grapes' }, { label: 'かき1個、梨半分、桃1個' }] },
+    ],
+  },
+];
+---
+
+<FigFrame
+  no={2}
+  title="「1つ」は、どのくらい？"
+  caption="「食事バランスガイド」の料理例から。3分の2以上〜1.5未満なら「1つ」と数える、くらいの大まかさで大丈夫です。"
+>
+  <div class="sv">
+    {
+      rows.map((r) => {
+        const g = groupBy(r.key);
+        return (
+          <section class="sv__group" style={`--c:${g.color}`}>
+            <p class="sv__head">
+              <span class="sv__name">{g.name}</span>
+              <span class="sv__basis">1つ ＝ {g.basis}</span>
+            </p>
+            {r.steps.map((st) => (
+              <div class="sv__step">
+                <p class="sv__n">
+                  <span class="mono">{st.n}</span>つ
+                </p>
+                <ul class="sv__items">
+                  {st.items.map((it) =>
+                    it.icon ? (
+                      <li class="sv__item">
+                        <FoodIcon name={it.icon} size="3rem" />
+                        <span>{it.label}</span>
+                      </li>
+                    ) : (
+                      <li class="sv__item sv__item--text">
+                        <span>{it.label}</span>
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </div>
+            ))}
+          </section>
+        );
+      })
+    }
+  </div>
+</FigFrame>
+
+<style>
+  .sv {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .sv__group {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .sv__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-3);
+    padding-block-end: var(--space-1);
+    border-block-end: 2px solid var(--c);
+  }
+
+  .sv__name {
+    font-weight: 800;
+    font-size: var(--fs-lg);
+    color: var(--c);
+  }
+
+  .sv__basis {
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+
+  .sv__step {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: var(--space-2);
+    align-items: start;
+  }
+
+  .sv__n {
+    display: grid;
+    place-items: center;
+    padding-block: 0.2rem;
+    margin-block-start: 0.6rem;
+    border: 1.5px solid var(--c);
+    color: var(--c);
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    line-height: 1.3;
+  }
+
+  .sv__n .mono {
+    font-size: var(--fs-md);
+  }
+
+  .sv__items {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .sv__item {
+    display: grid;
+    justify-items: center;
+    gap: 0.1rem;
+    inline-size: 4.6rem;
+    font-family: var(--font-gothic);
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .sv__item--text {
+    inline-size: auto;
+    max-inline-size: 11rem;
+    align-self: center;
+    justify-items: start;
+    text-align: start;
+    color: var(--ink-2);
+  }
+
+  .sv__item--text::before {
+    content: 'ほかに';
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    color: var(--c);
+  }
+</style>
