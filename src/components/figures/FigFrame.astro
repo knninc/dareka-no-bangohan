@@ -1,0 +1,72 @@
+---
+/**
+ * コラムの図版の枠。「図1」の番号・題・注記をそろえる。
+ */
+interface Props {
+  no?: number;
+  title: string;
+  caption?: string;
+}
+const { no, title, caption } = Astro.props;
+---
+
+<figure class="fig">
+  <header class="fig__head">
+    {no && <span class="fig__no mono">FIG.{String(no).padStart(2, '0')}</span>}
+    <span class="fig__title">{title}</span>
+  </header>
+  <div class="fig__body">
+    <slot />
+  </div>
+  {caption && <figcaption class="fig__cap">{caption}</figcaption>}
+</figure>
+
+<style>
+  .fig {
+    display: grid;
+    gap: var(--space-4);
+    margin-block: var(--space-6);
+    padding: var(--space-4);
+    border: 1px solid var(--ink);
+    background: color-mix(in srgb, var(--paper-2) 50%, transparent);
+    max-inline-size: 46rem;
+  }
+
+  .fig__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+    padding-block-end: var(--space-3);
+    border-block-end: 1px solid var(--ink);
+  }
+
+  .fig__no {
+    font-size: var(--fs-xs);
+    color: var(--shu-text);
+  }
+
+  .fig__title {
+    font-weight: 800;
+    font-size: var(--fs-lg);
+    line-height: 1.45;
+    font-feature-settings: 'palt';
+    word-break: auto-phrase;
+  }
+
+  .fig__body {
+    min-inline-size: 0;
+  }
+
+  .fig__cap {
+    font-size: var(--fs-xs);
+    line-height: 1.7;
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 48rem) {
+    .fig {
+      padding: var(--space-5) var(--space-6) var(--space-5);
+    }
+  }
+</style>

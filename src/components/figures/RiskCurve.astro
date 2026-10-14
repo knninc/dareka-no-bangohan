@@ -1,0 +1,219 @@
+---
+import FigFrame from './FigFrame.astro';
+/**
+ * 図：食事摂取基準の数字の役割（模式図）。
+ * 不足のリスクは推定平均必要量で50%、推奨量でごく小さくなる。耐容上限量を超えると過剰のリスクが出てくる。
+ */
+const X0 = 50, X1 = 620, Y0 = 270, H = 230;
+const EAR = 190, RDA = 270, UL = 470;
+const s1 = (RDA - EAR) / Math.log(39); // 推奨量で 2.5%
+const s2 = 25, c2 = UL + 3.9 * s2; // 上限量で 約2%
+const y = (r: number) => (Y0 - r * H).toFixed(1);
+const short = (x: number) => 1 / (1 + Math.exp((x - EAR) / s1));
+const over = (x: number) => 1 / (1 + Math.exp(-(x - c2) / s2));
+const path = (f: (x: number) => number, from: number, to: number) => {
+  const pts: string[] = [];
+  for (let x = from; x <= to; x += 5) pts.push(`${x},${y(f(x))}`);
+  return `M${pts.join(' L')}`;
+};
+const marks = [
+  { x: EAR, n: 1 },
+  { x: RDA, n: 2 },
+  { x: UL, n: 3 },
+];
+const legend = [
+  { n: '1', name: '推定平均必要量', text: 'その集団の半数の人が足りる量。ここでは、まだ半数の人が足りていない。' },
+  { n: '2', name: '推奨量', text: 'その集団のほとんどの人が足りると見込まれる量。' },
+  { n: '3', name: '耐容上限量', text: 'これを超えると、摂りすぎの害のリスクが出てくる境目。目指す数字ではない。' },
+  { n: '・', name: '目安量', text: '必要量を推定できない栄養素で使う、十分と考えられる量。' },
+  { n: '・', name: '目標量', text: '生活習慣病の予防のための量。食物繊維は「〜以上」、食塩は「〜未満」のように示される。' },
+];
+---
+
+<FigFrame
+  no={4}
+  title="基準の数字は、どれも役割がちがう"
+  caption="「日本人の食事摂取基準」の考え方をもとにした模式図。曲線の形や位置は説明のためのもので、特定の栄養素の値ではありません。"
+>
+  <div class="risk">
+    <svg viewBox="0 0 640 320" role="img" aria-labelledby="risk-desc" class="risk__svg">
+      <desc id="risk-desc">
+        横軸は摂取量、縦軸はリスク。摂取量が少ないと不足のリスクが高く、推定平均必要量で50%、推奨量でほぼなくなる。推奨量から耐容上限量までは、不足も過剰もリスクが低い。耐容上限量を超えると、過剰のリスクが上がっていく。
+      </desc>
+      <defs>
+        <pattern id="risk-hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="10" class="risk__hatch" />
+        </pattern>
+      </defs>
+      <rect x={RDA} y="30" width={UL - RDA} height={H + 10} fill="url(#risk-hatch)" />
+      <text x={(RDA + UL) / 2} y="62" class="risk__zone-t" text-anchor="middle">不足も過剰も</text>
+      <text x={(RDA + UL) / 2} y="88" class="risk__zone-t" text-anchor="middle">リスクが低い</text>
+      {marks.map((m) => <line x1={m.x} x2={m.x} y1="30" y2={Y0} class="risk__guide" />)}
+      <path d={path(short, X0, X1)} class="risk__short" />
+      <path d={path(over, X0 + 200, X1)} class="risk__over" />
+      <text x="62" y="236" class="risk__t">不足のリスク</text>
+      <text x="612" y="58" class="risk__t risk__t--over" text-anchor="end">過剰のリスク</text>
+      <line x1={X0} x2={X1 + 8} y1={Y0} y2={Y0} class="risk__axis" />
+      <path d={`M${X1 + 8},${Y0 - 6} L${X1 + 16},${Y0} L${X1 + 8},${Y0 + 6} Z`} class="risk__arrow" />
+      <line x1={X0} x2={X0} y1="26" y2={Y0} class="risk__axis" />
+      <text x={X0 - 10} y="44" class="risk__ax" text-anchor="end">高</text>
+      <text x={X0 - 10} y={Y0} class="risk__ax" text-anchor="end">低</text>
+      <text x={X1 + 16} y="312" class="risk__ax" text-anchor="end">摂取量 →</text>
+      {
+        marks.map((m) => (
+          <g>
+            <circle cx={m.x} cy="294" r="14" class="risk__mk" />
+            <text x={m.x} y="300" class="risk__mk-t" text-anchor="middle">{m.n}</text>
+          </g>
+        ))
+      }
+    </svg>
+
+    <dl class="risk__legend">
+      {
+        legend.map((l) => (
+          <div>
+            <dt>
+              <span class:list={['risk__n', l.n === '・' && 'is-plain']}>{l.n}</span>
+              {l.name}
+            </dt>
+            <dd>{l.text}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</FigFrame>
+
+<style>
+  .risk {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .risk__svg {
+    inline-size: 100%;
+    max-inline-size: 40rem;
+    block-size: auto;
+    overflow: visible;
+    font-family: var(--font-gothic);
+  }
+
+  .risk__hatch {
+    stroke: var(--ai);
+    stroke-width: 3;
+    stroke-opacity: 0.22;
+  }
+
+  .risk__zone-t {
+    font-size: 20px;
+    font-weight: 500;
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 6px;
+    fill: var(--ai);
+    letter-spacing: 0.08em;
+  }
+
+  .risk__guide {
+    stroke: var(--ink-2);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 5;
+  }
+
+  .risk__short {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 4;
+  }
+
+  .risk__over {
+    fill: none;
+    stroke: var(--shu);
+    stroke-width: 4;
+  }
+
+  .risk__t {
+    font-size: 19px;
+    font-weight: 500;
+    fill: var(--ink);
+  }
+
+  .risk__t--over {
+    fill: var(--shu-text);
+  }
+
+  .risk__axis {
+    stroke: var(--ink);
+    stroke-width: 2;
+  }
+
+  .risk__arrow {
+    fill: var(--ink);
+  }
+
+  .risk__ax {
+    font-size: 18px;
+    fill: var(--ink-2);
+  }
+
+  .risk__mk {
+    fill: var(--ink);
+  }
+
+  .risk__mk-t {
+    font-family: var(--font-mono);
+    font-size: 17px;
+    fill: var(--paper);
+  }
+
+  .risk__legend {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .risk__legend div {
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .risk__legend dt {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-weight: 800;
+    font-size: var(--fs-md);
+  }
+
+  .risk__legend dd {
+    padding-inline-start: 2em;
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+  }
+
+  .risk__n {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 1.5em;
+    block-size: 1.5em;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+  }
+
+  .risk__n.is-plain {
+    background: transparent;
+    color: var(--ink-2);
+    border: 1px dashed var(--ink-2);
+  }
+
+  @media (min-width: 48rem) {
+    .risk__legend {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--space-6);
+    }
+  }
+</style>

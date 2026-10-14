@@ -1,0 +1,131 @@
+---
+import FigFrame from './FigFrame.astro';
+/** 図：組み合わせ・調理で、届く量が変わる */
+const rows = [
+  { a: '非ヘム鉄', aEx: '豆・青菜など', b: 'ビタミンC', bEx: 'パプリカ・ブロッコリー・柑橘', up: true, r: '吸収を助ける' },
+  { a: 'カロテノイド', aEx: '緑黄色野菜', b: '少量の油', bEx: '油で調理する', up: true, r: '吸収がよくなる場合がある' },
+  { a: 'カルシウム', aEx: '乳製品・骨ごと食べる魚', b: 'ビタミンD', bEx: '魚類など', up: true, r: '腸での吸収の調節に関わる' },
+  { a: '鉄・亜鉛', aEx: '', b: 'フィチン酸', bEx: '豆・穀物', up: false, r: '吸収を妨げる場合がある' },
+  { a: 'カルシウム', aEx: '', b: 'シュウ酸', bEx: 'ほうれん草など', up: false, r: '利用を妨げる場合がある' },
+  { a: '銅', aEx: '', b: '大量の亜鉛サプリ', bEx: '', up: false, r: '銅の状態を悪くしうる' },
+  { a: '水に溶ける成分', aEx: '', b: '煮る・ゆでる', bEx: '', up: false, r: 'ゆで汁に移ることがある' },
+];
+---
+
+<FigFrame
+  no={5}
+  title="一緒に食べるもの、調理のしかたで、届く量が変わる"
+  caption="代表的な組み合わせの例。「場合がある」は、条件や量によって起きたり起きなかったりするもの。"
+>
+  <ul class="ix">
+    {
+      rows.map((r) => (
+        <li class:list={['ix__row', r.up ? 'is-up' : 'is-down']}>
+          <span class="ix__pair">
+            <span class="ix__term">
+              {r.a}
+              {r.aEx && <small>{r.aEx}</small>}
+            </span>
+            <span class="ix__op" aria-hidden="true">×</span>
+            <span class="ix__term">
+              {r.b}
+              {r.bEx && <small>{r.bEx}</small>}
+            </span>
+          </span>
+          <span class="ix__res">
+            <span class="ix__arrow" aria-hidden="true">{r.up ? '▲' : '▼'}</span>
+            <span class="visually-hidden">{r.up ? '（よい方向）' : '（悪い方向）'}</span>
+            {r.r}
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+  <p class="ix__legend" aria-hidden="true">
+    <span class="is-up"><span class="ix__arrow">▲</span> 届きやすくなる</span>
+    <span class="is-down"><span class="ix__arrow">▼</span> 届きにくくなる</span>
+  </p>
+</FigFrame>
+
+<style>
+  .ix {
+    list-style: none;
+    display: grid;
+    border-block-start: 1px solid var(--ink);
+  }
+
+  .ix__row {
+    display: grid;
+    gap: var(--space-1);
+    padding-block: var(--space-3);
+    border-block-end: 1px solid var(--rule);
+  }
+
+  .ix__pair {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .ix__term {
+    font-weight: 800;
+    font-size: var(--fs-md);
+    line-height: 1.5;
+  }
+
+  .ix__term small {
+    margin-inline-start: 0.4em;
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    color: var(--ink-2);
+  }
+
+  .ix__op {
+    font-family: var(--font-mono);
+    color: var(--ink-2);
+  }
+
+  .ix__res {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+    font-family: var(--font-gothic);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+  }
+
+  .is-up {
+    --c: var(--ai);
+  }
+
+  .is-down {
+    --c: var(--shu-text);
+  }
+
+  .ix__res,
+  .ix__legend > span {
+    color: var(--c);
+  }
+
+  .ix__arrow {
+    font-size: 0.8em;
+  }
+
+  .ix__legend {
+    display: flex;
+    gap: var(--space-5);
+    margin-block-start: var(--space-3);
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+  }
+
+  @media (min-width: 48rem) {
+    .ix__row {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      align-items: baseline;
+      column-gap: var(--space-5);
+    }
+  }
+</style>

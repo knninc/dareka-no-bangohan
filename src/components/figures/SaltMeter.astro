@@ -1,0 +1,170 @@
+---
+import FigFrame from './FigFrame.astro';
+/** 図：ナトリウムから食塩相当量へ。成人の目標量と並べる */
+const MAX = 10;
+const na = 2000;
+const salt = (na * 2.54) / 1000; // 5.08
+const pos = (g: number) => `${(g / MAX) * 100}%`;
+const goals = [
+  { g: 6.5, label: '女性 6.5g未満' },
+  { g: 7.5, label: '男性 7.5g未満' },
+];
+---
+
+<FigFrame
+  no={6}
+  title="「ナトリウム」の数字は、食塩に直して読む"
+  caption="目標量は「日本人の食事摂取基準（2025年版）」の成人の値（1日あたり）。高血圧などがある場合は、個別の目標を確認してください。"
+>
+  <div class="salt">
+    <p class="salt__formula">
+      <span class="salt__box">
+        <small>ナトリウム</small>
+        <span class="mono">mg</span>
+      </span>
+      <span class="salt__op mono">× 2.54 ÷ 1,000 =</span>
+      <span class="salt__box salt__box--out">
+        <small>食塩相当量</small>
+        <span class="mono">g</span>
+      </span>
+    </p>
+
+    <p class="salt__ex">
+      たとえば、ナトリウム <strong class="mono">{na.toLocaleString()}mg</strong> は、食塩にすると
+      <strong class="salt__ex-out mono">約{salt.toFixed(1)}g</strong>。
+    </p>
+
+    <div class="salt__gauge" aria-hidden="true">
+      <div class="salt__track">
+        <span class="salt__fill" style={`inline-size:${pos(salt)}`}>
+          <span class="mono">{salt.toFixed(1)}g</span>
+        </span>
+        {goals.map((g) => <span class="salt__goal" style={`inset-inline-start:${pos(g.g)}`} />)}
+      </div>
+      <div class="salt__ticks">
+        {Array.from({ length: MAX + 1 }, (_, i) => <span class="mono" style={`inset-inline-start:${pos(i)}`}>{i % 2 === 0 ? i : ''}</span>)}
+      </div>
+      <div class="salt__goal-labels">
+        {goals.map((g, i) => <span style={`inset-inline-start:${pos(g.g)}`} class:list={[i === 0 ? 'is-l' : 'is-r']}>{g.label}</span>)}
+      </div>
+    </div>
+    <p class="visually-hidden">成人の1日の目標量は、女性6.5g未満、男性7.5g未満。</p>
+  </div>
+</FigFrame>
+
+<style>
+  .salt {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .salt__formula {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .salt__box {
+    display: grid;
+    justify-items: center;
+    padding: var(--space-2) var(--space-3);
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    line-height: 1.3;
+  }
+
+  .salt__box small {
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+  }
+
+  .salt__box .mono {
+    font-size: var(--fs-lg);
+  }
+
+  .salt__box--out {
+    border-color: var(--shu-text);
+    color: var(--shu-text);
+  }
+
+  .salt__op {
+    font-size: var(--fs-md);
+  }
+
+  .salt__ex {
+    font-size: var(--fs-md);
+  }
+
+  .salt__ex-out {
+    color: var(--shu-text);
+  }
+
+  .salt__gauge {
+    display: grid;
+    gap: var(--space-1);
+    padding-block: var(--space-2) var(--space-6);
+    margin-inline: 0.5rem;
+  }
+
+  .salt__track {
+    position: relative;
+    block-size: 2rem;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+  }
+
+  .salt__fill {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-inline-end: 0.4em;
+    background:
+      repeating-linear-gradient(135deg, transparent 0 5px, color-mix(in srgb, var(--paper) 30%, transparent) 5px 7px),
+      var(--ai);
+    color: var(--paper);
+    font-size: var(--fs-xs);
+  }
+
+  .salt__goal {
+    position: absolute;
+    inset-block: -0.4rem;
+    inline-size: 2px;
+    background: var(--shu);
+  }
+
+  .salt__ticks,
+  .salt__goal-labels {
+    position: relative;
+    block-size: 1.2rem;
+  }
+
+  .salt__ticks span {
+    position: absolute;
+    translate: -50% 0;
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+    color: var(--ink-2);
+  }
+
+  .salt__goal-labels span {
+    position: absolute;
+    top: 0.2rem;
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    color: var(--shu-text);
+    white-space: nowrap;
+  }
+
+  .salt__goal-labels .is-l {
+    translate: calc(-100% - 0.3rem) 0;
+  }
+
+  .salt__goal-labels .is-r {
+    translate: 0.3rem 0;
+  }
+</style>

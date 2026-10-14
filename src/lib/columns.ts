@@ -28,13 +28,29 @@ export const columnUrl = (c: Column) => `/column/${pad3(c.data.no)}/`;
 
 export const columnLabel = (n: number) => `COLUMN ${pad3(n)}`;
 
-/** 本文を HTML にし、h2 に id を振って目次を返す */
-export function columnBody(c: Column): { html: string; toc: { id: string; title: string }[] } {
+export type BodyPart = { kind: 'html'; html: string } | { kind: 'fig'; name: string };
+
+/**
+ * 本文を HTML にし、h2 に id を振って目次を返す。
+ * `::fig <名前>` だけの段落は図版の差し込み位置として切り出す。
+ */
+export function columnBody(c: Column): { parts: BodyPart[]; toc: { id: string; title: string }[] } {
   const toc: { id: string; title: string }[] = [];
   const html = (renderMarkdown(c.body ?? '') ?? '').replace(/<h2>([\s\S]*?)<\/h2>/g, (_m, inner: string) => {
     const id = `c${toc.length + 1}`;
     toc.push({ id, title: inner.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&') });
     return `<h2 id="${id}">${inner}</h2>`;
   });
-  return { html, toc };
+  const parts: BodyPart[] = [];
+  const re = /<p>::fig ([a-z0-9-]+)<\/p>/g;
+  let last = 0;
+  for (const m of html.matchAll(re)) {
+    const before = html.slice(last, m.index).trim();
+    if (before) parts.push({ kind: 'html', html: before });
+    parts.push({ kind: 'fig', name: m[1] });
+    last = (m.index ?? 0) + m[0].length;
+  }
+  const rest = html.slice(last).trim();
+  if (rest) parts.push({ kind: 'html', html: rest });
+  return { parts, toc };
 }

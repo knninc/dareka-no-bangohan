@@ -106,6 +106,8 @@ const columns = defineCollection({
       subtitle: z.string().optional(),
       /** 一覧・SNS用の短い説明 */
       summary: z.string().min(1),
+      /** 扉に入れる図版の名前（src/components/figures/index.ts） */
+      hero: z.string().optional(),
       /** 誰がどうまとめたか（例：参考資料をもとに AI がまとめました） */
       credit: z.string().optional(),
       /** 本文の後に置く注意書き */

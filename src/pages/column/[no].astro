@@ -3,7 +3,7 @@
  * コラムの詳細ページ。/column/001/
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import StockList from '../../components/StockList.astro';
+import { FIGURES, isFigureName } from '../../components/figures';
 import SectionLink from '../../components/SectionLink.astro';
 import { SITE } from '../../site.config';
 import { getColumns, columnUrl, columnBody, type Column } from '../../lib/columns';
@@ -20,7 +20,11 @@ interface Props {
 
 const { column } = Astro.props;
 const d = column.data;
-const { html, toc } = columnBody(column);
+const { parts, toc } = columnBody(column);
+for (const name of [d.hero, ...parts.flatMap((p) => (p.kind === 'fig' ? [p.name] : []))]) {
+  if (name && !isFigureName(name)) throw new Error(`コラム ${pad3(d.no)}: 図版「${name}」はありません（src/components/figures/index.ts）`);
+}
+const Hero = d.hero && isFigureName(d.hero) ? FIGURES[d.hero] : undefined;
 const lines = d.titleLines?.length ? d.titleLines : [d.title];
 
 const jsonLd = {
@@ -62,9 +66,9 @@ const jsonLd = {
 
         {d.subtitle && <p class="col-head__sub">{d.subtitle}</p>}
 
-        {d.no === 1 && (
+        {Hero && (
           <div class="col-head__visual">
-            <StockList />
+            <Hero />
           </div>
         )}
       </div>
@@ -93,7 +97,15 @@ const jsonLd = {
         }
 
         <div class="col-text">
-          <div class="prose col-prose" set:html={html} />
+          <div class="col-flow">
+            {
+              parts.map((p) => {
+                if (p.kind === 'html') return <div class="prose col-prose" set:html={p.html} />;
+                const Fig = isFigureName(p.name) ? FIGURES[p.name] : undefined;
+                return Fig ? <Fig /> : null;
+              })
+            }
+          </div>
 
           {d.credit && <p class="col-credit">{d.credit}</p>}
 
@@ -298,7 +310,7 @@ const jsonLd = {
     scroll-margin-block-start: var(--space-5);
   }
 
-  .col-prose :global(h2:first-child) {
+  .col-flow > .col-prose:first-child > :global(h2:first-child) {
     margin-block-start: 0;
     padding-block-start: 0;
     border-block-start: 0;
@@ -349,13 +361,6 @@ const jsonLd = {
 
   .col-prose :global(tbody tr:last-child td) {
     border-block-end: 1.5px solid var(--ink);
-  }
-
-  /* 最後の段落（結び）を少し大きく */
-  .col-prose > :global(p:last-child) {
-    margin-block-start: 2em;
-    font-size: var(--fs-lg);
-    line-height: 1.95;
   }
 
   .col-credit {
