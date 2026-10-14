@@ -3,7 +3,7 @@
  * コラムの詳細ページ。/column/001/
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import NutrientBoxes from '../../components/NutrientBoxes.astro';
+import StockList from '../../components/StockList.astro';
 import SectionLink from '../../components/SectionLink.astro';
 import { SITE } from '../../site.config';
 import { getColumns, columnUrl, columnBody, type Column } from '../../lib/columns';
@@ -64,7 +64,7 @@ const jsonLd = {
 
         {d.no === 1 && (
           <div class="col-head__visual">
-            <NutrientBoxes />
+            <StockList />
           </div>
         )}
       </div>
@@ -123,7 +123,7 @@ const jsonLd = {
                         <span>{src.title}</span>
                       )}
                       {src.publisher && <span class="col-refs__publisher">（{src.publisher}）</span>}
-                      {src.note && <span class="col-refs__note">{src.note}</span>}
+                      {src.note && <span class="col-refs__note"> — {src.note}</span>}
                     </li>
                   ))}
                 </ol>
@@ -227,6 +227,7 @@ const jsonLd = {
         'meta meta'
         'title visual'
         'sub visual';
+      grid-template-rows: auto auto 1fr;
       column-gap: var(--space-8);
       row-gap: var(--space-5);
       align-items: start;

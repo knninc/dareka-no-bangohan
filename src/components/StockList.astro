@@ -1,0 +1,150 @@
+---
+/**
+ * 図版：解説書の「買い置きの候補」と、VOL.001 の食卓で重なったもの。
+ * 重なりは献立と写真から読み取れるものだけ（分量の記録はない）。
+ */
+const items: { name: string; found?: string }[] = [
+  { name: '米・押し麦', found: '台所Aの写真に、ごはん' },
+  { name: '卵', found: 'トマたま' },
+  { name: '豆腐', found: '冷奴' },
+  { name: '納豆' },
+  { name: '魚缶' },
+  { name: '冷凍のブロッコリー・小松菜' },
+  { name: '旬の野菜' },
+  { name: '牛乳・ヨーグルト' },
+  { name: '果物' },
+];
+const hits = items.filter((i) => i.found).length;
+---
+
+<figure class="stock">
+  <p class="stock__head">
+    <span class="stock__label">本の買い置きリスト</span>
+    <span class="stock__x" aria-hidden="true">×</span>
+    <span class="stock__label">創刊号の食卓</span>
+  </p>
+  <ul class="stock__list">
+    {
+      items.map((i) => (
+        <li class:list={['stock__item', i.found && 'is-hit']}>
+          <span class="stock__mark" aria-hidden="true">{i.found ? '有' : ''}</span>
+          <span class="stock__name">{i.name}</span>
+          {i.found ? (
+            <span class="stock__found">{i.found}</span>
+          ) : (
+            <span class="visually-hidden">（この夜の食卓にはなし）</span>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+  <p class="stock__total">
+    <span>九つのうち</span><span class="stock__n mono">{hits}</span><span>つ</span>
+  </p>
+  <figcaption class="stock__cap">解説書の「買い置きの候補」と、VOL.001 の献立・写真。分量の記録はありません。</figcaption>
+</figure>
+
+<style>
+  .stock {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--ink);
+    background: color-mix(in srgb, var(--paper-2) 55%, transparent);
+  }
+
+  .stock__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2em 0.6em;
+    padding-block-end: var(--space-2);
+    border-block-end: 1px solid var(--ink);
+    font-family: var(--font-gothic);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.08em;
+  }
+
+  .stock__x {
+    font-family: var(--font-mono);
+    color: var(--shu-text);
+  }
+
+  .stock__list {
+    list-style: none;
+    display: grid;
+  }
+
+  .stock__item {
+    display: grid;
+    grid-template-columns: 1.6rem 1fr;
+    column-gap: var(--space-2);
+    align-items: center;
+    padding-block: 0.3rem;
+    border-block-end: 1px dotted var(--rule);
+    font-size: var(--fs-md);
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+
+  .stock__item.is-hit {
+    color: var(--ink);
+    font-weight: 800;
+  }
+
+  .stock__mark {
+    display: grid;
+    place-items: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    border: 1px dashed var(--rule);
+    border-radius: 50%;
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: 0.6875rem;
+    line-height: 1;
+  }
+
+  .is-hit .stock__mark {
+    border: 1.5px solid var(--shu);
+    color: var(--shu-text);
+    rotate: -8deg;
+  }
+
+  .stock__found {
+    grid-column: 2;
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--shu-text);
+  }
+
+  .stock__total {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 0.4em;
+    font-family: var(--font-gothic);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.1em;
+  }
+
+  .stock__n {
+    font-size: 2.25rem;
+    line-height: 1;
+    color: var(--shu-text);
+  }
+
+  .stock__cap {
+    font-size: var(--fs-xs);
+    line-height: 1.7;
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 48rem) {
+    .stock {
+      padding: var(--space-5);
+    }
+  }
+</style>
