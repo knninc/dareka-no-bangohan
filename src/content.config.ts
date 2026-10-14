@@ -87,4 +87,37 @@ const issues = defineCollection({
       }),
 });
 
-export const collections = { issues };
+/**
+ * コラム（column）
+ * 1本 = 1フォルダ： src/content/columns/<3桁の番号>/index.md
+ * 号とは別の読みもの。実際の記録にないこと（食べた感想・分量など）は書かない。
+ */
+const columns = defineCollection({
+  loader: glob({ base: './src/content/columns', pattern: '*/index.md' }),
+  schema: z
+    .object({
+      /** 番号（1, 2, 3 …）。フォルダ名の3桁と一致させる */
+      no: z.number().int().positive(),
+      /** 掲載日 YYYY-MM-DD */
+      date: z.coerce.date(),
+      title: z.string().min(1),
+      /** 表示用の改行位置（任意）。つなげると title と同じになること */
+      titleLines: z.array(z.string().min(1)).optional(),
+      subtitle: z.string().optional(),
+      /** 一覧・SNS用の短い説明 */
+      summary: z.string().min(1),
+      /** 誰がどうまとめたか（例：参考資料をもとに AI がまとめました） */
+      credit: z.string().optional(),
+      /** 本文の後に置く注意書き */
+      note: z.string().optional(),
+      /** 参考資料。url は実際に開いて確認したものだけ */
+      sources: z.array(source).default([]),
+      draft: z.boolean().default(false),
+    })
+    .refine((d) => !d.titleLines || d.titleLines.join('') === d.title, {
+      message: 'titleLines をつなげた文字列が title と一致していません',
+      path: ['titleLines'],
+    }),
+});
+
+export const collections = { issues, columns };

@@ -8,6 +8,12 @@
 - `docs/EDITORIAL.md` — 編集の約束（**必ず守る**）
 - `docs/DESIGN.md` — 色・書体・部品の考え方
 
+## ナレッジ（参考資料）
+
+`docs/knowledge/` に置く。必要なときに読む参考資料で、サイトには出ない。
+
+- `docs/knowledge/栄養学_深い解説書_2026.md` — 五大栄養素・33項目、PFC、食事摂取基準（2025年版）の読み方。献立や解説で栄養に触れるときの確認用。号の料理について栄養の数値や健康効果を書くときは、実際の分量で確かめたことだけにする。
+
 ## 守ること
 
 - 実際に作った記録と想像上の設定を混ぜない。開催していない号、食べていない感想、参加者の発言、撮っていない写真、未確認のURLを作らない。
@@ -35,6 +41,7 @@ npm run deploy           # 手元から Cloudflare Workers に公開（通常は
 ## 実装の約束
 
 - 号は `src/content/issues/<3桁>/index.md`。スキーマは `src/content.config.ts`。
+- コラムは `src/content/columns/<3桁>/index.md`（`/column/<3桁>/`）。号と同じ編集の約束を守る。
 - 本文の見出しは `src/lib/sections.ts` の `BODY_SECTIONS` だけ。増やすときは `scripts/lib.mjs` の `BODY_HEADINGS` も直す。
 - ジャンルは `src/lib/genres.ts`。色は `src/styles/global.css` の `--g-*` と `genres.ts` の `color` をそろえる。
 - 台所の呼び名は `src/site.config.ts` の `kitchens`。増やすときは `scripts/lib.mjs` の `KITCHENS` も直す。

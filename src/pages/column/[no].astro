@@ -1,0 +1,445 @@
+---
+/**
+ * コラムの詳細ページ。/column/001/
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NutrientBoxes from '../../components/NutrientBoxes.astro';
+import SectionLink from '../../components/SectionLink.astro';
+import { SITE } from '../../site.config';
+import { getColumns, columnUrl, columnBody, type Column } from '../../lib/columns';
+import { pad3, dateJa, isoDate } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const columns = await getColumns();
+  return columns.map((column) => ({ params: { no: pad3(column.data.no) }, props: { column } }));
+}
+
+interface Props {
+  column: Column;
+}
+
+const { column } = Astro.props;
+const d = column.data;
+const { html, toc } = columnBody(column);
+const lines = d.titleLines?.length ? d.titleLines : [d.title];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: d.title,
+  alternativeHeadline: d.subtitle,
+  datePublished: isoDate(d.date),
+  articleSection: 'コラム',
+  inLanguage: 'ja',
+  url: new URL(columnUrl(column), Astro.site).href,
+  isPartOf: { '@type': 'Periodical', name: SITE.name },
+  description: d.summary,
+};
+---
+
+<BaseLayout
+  title={`コラム ${d.title}`}
+  description={d.summary}
+  type="article"
+  publishedTime={isoDate(d.date)}
+  current="column"
+  jsonLd={jsonLd}
+>
+  <article class="column">
+    <header class="col-head frame">
+      <div class="col-head__grid">
+        <div class="col-head__meta">
+          <p class="col-head__label">
+            <span class="col-head__stamp">コラム</span>
+            <span class="mono">COLUMN {pad3(d.no)}</span>
+          </p>
+          <p class="col-head__date mono"><time datetime={isoDate(d.date)}>{dateJa(d.date)}</time></p>
+        </div>
+
+        <h1 class="col-head__title">
+          {lines.map((l) => <span>{l}</span>)}
+        </h1>
+
+        {d.subtitle && <p class="col-head__sub">{d.subtitle}</p>}
+
+        {d.no === 1 && (
+          <div class="col-head__visual">
+            <NutrientBoxes />
+          </div>
+        )}
+      </div>
+    </header>
+
+    <div class="col-body frame">
+      <div class="col-body__grid">
+        {
+          toc.length > 1 && (
+            <nav class="col-toc" aria-labelledby="col-toc-title">
+              <h2 id="col-toc-title" class="col-toc__title">
+                もくじ
+              </h2>
+              <ol class="col-toc__list">
+                {toc.map((t, i) => (
+                  <li>
+                    <a href={`#${t.id}`}>
+                      <span class="col-toc__no mono">{String(i + 1).padStart(2, '0')}</span>
+                      <span>{t.title}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )
+        }
+
+        <div class="col-text">
+          <div class="prose col-prose" set:html={html} />
+
+          {d.credit && <p class="col-credit">{d.credit}</p>}
+
+          {
+            d.note && (
+              <aside class="col-note" aria-label="注意">
+                <p class="col-note__label">ご注意</p>
+                <p>{d.note}</p>
+              </aside>
+            )
+          }
+
+          {
+            d.sources.length > 0 && (
+              <section class="col-refs" aria-labelledby="col-refs-title">
+                <h2 id="col-refs-title" class="col-refs__title">
+                  参考資料
+                </h2>
+                <ol class="col-refs__list">
+                  {d.sources.map((src) => (
+                    <li>
+                      {src.url ? (
+                        <a href={src.url} rel="noopener">
+                          {src.title}
+                        </a>
+                      ) : (
+                        <span>{src.title}</span>
+                      )}
+                      {src.publisher && <span class="col-refs__publisher">（{src.publisher}）</span>}
+                      {src.note && <span class="col-refs__note">{src.note}</span>}
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <nav class="col-pager frame" aria-label="コラムの一覧">
+    <div class="col-pager__inner">
+      <SectionLink href="/column/">コラムの一覧へ</SectionLink>
+      <SectionLink href="/archive/">バックナンバーへ</SectionLink>
+    </div>
+  </nav>
+</BaseLayout>
+
+<style>
+  /* ---------------- 扉 ---------------- */
+  .col-head {
+    padding-block: var(--space-6) var(--space-7);
+  }
+
+  .col-head__grid {
+    display: grid;
+    grid-template-areas:
+      'meta'
+      'title'
+      'sub'
+      'visual';
+    gap: var(--space-5);
+  }
+
+  .col-head__meta {
+    grid-area: meta;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    padding-block-end: var(--space-3);
+    border-block-end: 1px solid var(--ink);
+  }
+
+  .col-head__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+  }
+
+  .col-head__stamp {
+    padding: 0.1em 0.7em 0.15em;
+    background: var(--shu-text);
+    color: var(--paper);
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.3em;
+    padding-inline-end: 0.4em;
+  }
+
+  .col-head__date {
+    font-size: var(--fs-sm);
+    color: var(--ink-2);
+  }
+
+  .col-head__title {
+    grid-area: title;
+    display: grid;
+    font-size: clamp(1.5rem, 0.2rem + 7vw, 4rem);
+    line-height: 1.32;
+    letter-spacing: 0.03em;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  .col-head__sub {
+    grid-area: sub;
+    max-inline-size: 30em;
+    font-size: var(--fs-lg);
+    line-height: 1.8;
+    color: var(--ink-2);
+  }
+
+  .col-head__visual {
+    grid-area: visual;
+    max-inline-size: 26rem;
+  }
+
+  @media (min-width: 60rem) {
+    .col-head {
+      padding-block: var(--space-7) var(--space-8);
+    }
+    .col-head__grid {
+      grid-template-columns: minmax(0, 1fr) 26rem;
+      grid-template-areas:
+        'meta meta'
+        'title visual'
+        'sub visual';
+      column-gap: var(--space-8);
+      row-gap: var(--space-5);
+      align-items: start;
+    }
+    .col-head__title {
+      padding-block-start: var(--space-4);
+    }
+    .col-head__visual {
+      align-self: end;
+      margin-block-start: var(--space-4);
+    }
+  }
+
+  /* ---------------- 本文 ---------------- */
+  .col-body__grid {
+    display: grid;
+    gap: var(--space-7);
+    padding-block-start: var(--space-6);
+    border-block-start: 1.5px solid var(--ink);
+  }
+
+  .col-toc__title {
+    margin-block-end: var(--space-3);
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.4em;
+    color: var(--ink-2);
+  }
+
+  .col-toc__list {
+    list-style: none;
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .col-toc__list a {
+    display: grid;
+    grid-template-columns: 2.2rem 1fr;
+    gap: var(--space-2);
+    padding-block: var(--space-2);
+    border-block-end: 1px dotted var(--rule);
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    text-decoration: none;
+    word-break: auto-phrase;
+  }
+
+  .col-toc__no {
+    font-size: var(--fs-xs);
+    color: var(--shu-text);
+    padding-block-start: 0.35em;
+  }
+
+  .col-text {
+    display: grid;
+    gap: var(--space-6);
+    min-inline-size: 0;
+  }
+
+  .col-prose :global(h2) {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+    margin-block-start: 2.6em;
+    padding-block-start: var(--space-4);
+    border-block-start: 1px solid var(--ink);
+    font-size: var(--fs-xl);
+    scroll-margin-block-start: var(--space-5);
+  }
+
+  .col-prose :global(h2:first-child) {
+    margin-block-start: 0;
+    padding-block-start: 0;
+    border-block-start: 0;
+  }
+
+  .col-prose :global(h2)::before {
+    content: '';
+    flex: none;
+    inline-size: 0.55em;
+    block-size: 0.55em;
+    background: var(--shu);
+    translate: 0 -0.08em;
+  }
+
+  .col-prose :global(ol) {
+    padding-inline-start: 1.6em;
+  }
+
+  .col-prose :global(table) {
+    inline-size: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-md);
+    line-height: 1.7;
+  }
+
+  .col-prose :global(th),
+  .col-prose :global(td) {
+    padding: var(--space-2) var(--space-3) var(--space-2) 0;
+    border-block-end: 1px solid var(--rule);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .col-prose :global(thead th) {
+    border-block-end: 1px solid var(--ink);
+    font-family: var(--font-gothic);
+    font-weight: 500;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.14em;
+    color: var(--ink-2);
+  }
+
+  .col-prose :global(tbody td:first-child) {
+    inline-size: 7.5em;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .col-prose :global(tbody tr:last-child td) {
+    border-block-end: 1.5px solid var(--ink);
+  }
+
+  /* 最後の段落（結び）を少し大きく */
+  .col-prose > :global(p:last-child) {
+    margin-block-start: 2em;
+    font-size: var(--fs-lg);
+    line-height: 1.95;
+  }
+
+  .col-credit {
+    max-inline-size: var(--measure);
+    padding-block-start: var(--space-4);
+    border-block-start: 1px solid var(--rule);
+    font-family: var(--font-gothic);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+  }
+
+  .col-note {
+    max-inline-size: var(--measure);
+    padding: var(--space-4) var(--space-5);
+    border: 1px dashed var(--ink-2);
+    font-size: var(--fs-sm);
+    line-height: 1.85;
+    color: var(--ink-2);
+  }
+
+  .col-note__label {
+    margin-block-end: var(--space-1);
+    font-family: var(--font-gothic);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.3em;
+  }
+
+  .col-refs {
+    max-inline-size: var(--measure);
+  }
+
+  .col-refs__title {
+    margin-block-end: var(--space-3);
+    padding-block-end: var(--space-2);
+    border-block-end: 1px solid var(--ink);
+    font-size: var(--fs-lg);
+  }
+
+  .col-refs__list {
+    padding-inline-start: 1.4em;
+    font-size: var(--fs-sm);
+    line-height: 1.8;
+  }
+
+  .col-refs__list li + li {
+    margin-block-start: var(--space-2);
+  }
+
+  .col-refs__list li::marker {
+    font-family: var(--font-mono);
+    color: var(--ink-2);
+  }
+
+  .col-refs__list a {
+    color: var(--ai);
+  }
+
+  .col-refs__publisher,
+  .col-refs__note {
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 60rem) {
+    .col-body__grid {
+      grid-template-columns: 15rem minmax(0, 1fr);
+      column-gap: var(--space-8);
+      align-items: start;
+    }
+    .col-toc {
+      position: sticky;
+      top: var(--space-5);
+    }
+  }
+
+  /* ---------------- 下の案内 ---------------- */
+  .col-pager {
+    padding-block-start: var(--space-8);
+  }
+
+  .col-pager__inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-6);
+    padding-block-start: var(--space-5);
+    border-block-start: 1px solid var(--ink);
+  }
+</style>

@@ -4,7 +4,7 @@ import { getIssues, issueUrl } from '../lib/issues';
 
 interface Props {
   /** 現在のセクション（ナビの aria-current 用） */
-  current?: 'latest' | 'archive' | 'genres' | 'about';
+  current?: 'latest' | 'archive' | 'genres' | 'column' | 'about';
 }
 
 const { current } = Astro.props;
@@ -14,6 +14,7 @@ const nav = [
   { key: 'latest', label: '最新号', href: latest ? issueUrl(latest) : '/archive/' },
   { key: 'archive', label: 'バックナンバー', href: '/archive/' },
   { key: 'genres', label: '四つの食卓', href: '/#genres' },
+  { key: 'column', label: 'コラム', href: '/column/' },
   { key: 'about', label: 'この活動について', href: '/about/' },
 ] as const;
 ---

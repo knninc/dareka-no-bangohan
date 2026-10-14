@@ -1,0 +1,130 @@
+---
+/**
+ * コラムの一覧。/column/
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getColumns, columnUrl } from '../../lib/columns';
+import { pad3, dateDots, isoDate } from '../../lib/format';
+
+const columns = await getColumns();
+---
+
+<BaseLayout
+  title="コラム"
+  description="「週刊・誰かの晩ごはん」のコラム。号とは別に、晩ごはんのまわりのことを読みものにしています。"
+  current="column"
+>
+  <section class="columns frame" aria-labelledby="columns-title">
+    <header class="columns__head">
+      <p class="kicker">COLUMN</p>
+      <h1 id="columns-title" class="columns__title">コラム</h1>
+      <p class="columns__lead">号とは別の、晩ごはんのまわりの読みもの。</p>
+    </header>
+
+    {
+      columns.length > 0 ? (
+        <ol class="columns__list">
+          {columns.map((c) => (
+            <li>
+              <a href={columnUrl(c)}>
+                <span class="columns__meta mono">
+                  <span>COLUMN {pad3(c.data.no)}</span>
+                  <time datetime={isoDate(c.data.date)}>{dateDots(c.data.date)}</time>
+                </span>
+                <span class="columns__name">{c.data.title}</span>
+                {c.data.subtitle && <span class="columns__sub">{c.data.subtitle}</span>}
+              </a>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p class="columns__empty">コラムは、まだありません。</p>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .columns {
+    padding-block: var(--space-7) 0;
+  }
+
+  .columns__head {
+    display: grid;
+    gap: var(--space-3);
+    padding-block-end: var(--space-5);
+    border-block-end: 1.5px solid var(--ink);
+  }
+
+  .columns__title {
+    font-size: var(--fs-3xl);
+    line-height: 1.2;
+  }
+
+  .columns__lead {
+    color: var(--ink-2);
+  }
+
+  .columns__list {
+    list-style: none;
+  }
+
+  .columns__list a {
+    display: grid;
+    gap: var(--space-2);
+    padding-block: var(--space-5);
+    border-block-end: 1px solid var(--rule);
+    text-decoration: none;
+  }
+
+  .columns__meta {
+    display: flex;
+    gap: var(--space-4);
+    font-size: var(--fs-sm);
+    color: var(--shu-text);
+  }
+
+  .columns__name {
+    font-weight: 800;
+    font-size: var(--fs-xl);
+    line-height: 1.4;
+    font-feature-settings: 'palt';
+    word-break: auto-phrase;
+  }
+
+  .columns__sub {
+    font-size: var(--fs-md);
+    color: var(--ink-2);
+  }
+
+  .columns__list a:hover .columns__name {
+    color: var(--shu-text);
+  }
+
+  .columns__empty {
+    padding-block: var(--space-6);
+    color: var(--ink-2);
+  }
+
+  @media (min-width: 60rem) {
+    .columns__list a {
+      grid-template-columns: 13rem minmax(0, 1fr);
+      grid-template-areas:
+        'meta name'
+        'meta sub';
+      column-gap: var(--space-7);
+    }
+    .columns__meta {
+      grid-area: meta;
+      flex-direction: column;
+      gap: 0;
+      padding-block-start: 0.5em;
+    }
+    .columns__name {
+      grid-area: name;
+    }
+    .columns__sub {
+      grid-area: sub;
+    }
+  }
+</style>

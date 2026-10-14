@@ -58,6 +58,7 @@
 │   │   └── 001/
 │   │       ├── index.md      ← 号の本文と情報
 │   │       └── photos/       ← 実際に撮った写真（任意）
+│   ├── content/columns/      ← コラム（1本 = 1フォルダ：001/index.md）
 │   ├── content.config.ts     ← 号のデータの型（必須項目の定義）
 │   ├── site.config.ts        ← サイト名・コピー・台所の呼び名
 │   ├── lib/                  ← ジャンル定義、日付、Markdown、OGP など
@@ -67,6 +68,7 @@
 │   │   ├── index.astro       ← 表紙（トップ）
 │   │   ├── archive/          ← バックナンバー（/archive/ と ジャンル別）
 │   │   ├── vol/[vol].astro   ← 号の詳細（/vol/001/）
+│   │   ├── column/           ← コラム（/column/ と /column/001/）
 │   │   ├── about.astro       ← この活動について
 │   │   ├── 404.astro
 │   │   ├── og/[vol].png.ts   ← 号ごとの OGP 画像
@@ -78,7 +80,8 @@
 │   └── check-content.mjs     ← npm run check:content
 ├── docs/
 │   ├── EDITORIAL.md          ← 編集の約束（書くときに読む）
-│   └── DESIGN.md             ← デザインの考え方
+│   ├── DESIGN.md             ← デザインの考え方
+│   └── knowledge/            ← ナレッジ（参考資料。サイトには出ない）
 └── public/                   ← favicon など
 ```
 
@@ -90,6 +93,7 @@
 | `/archive/` | バックナンバー（すべて） |
 | `/archive/modern/` `past/` `fantasy/` `faith/` | ジャンル別 |
 | `/vol/001/` | 号の詳細 |
+| `/column/` `/column/001/` | コラムの一覧・コラム |
 | `/about/` | この活動について |
 | `/rss.xml` `/sitemap-index.xml` | RSS・サイトマップ |
 
@@ -175,6 +179,16 @@ menu:
 ### 3. 公開する
 
 `draft: false` にして、GitHub に push すると（ホスティング連携後は）自動で公開されます。
+
+---
+
+## コラムを追加する
+
+号とは別の読みものです。`src/content/columns/<3桁>/index.md` を1つ書くと、`/column/<3桁>/` に出ます（項目は `src/content.config.ts` の `columns`）。
+
+- 号の記録と同じく、作っていないもの・食べていない感想・量っていない分量は書かない。
+- 誰がどうまとめたかは `credit` に、注意書きは `note` に書く。
+- 参考資料の URL は、実際に開いて確認したものだけ。
 
 ---
 
