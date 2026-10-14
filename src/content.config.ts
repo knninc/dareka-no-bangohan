@@ -78,6 +78,8 @@ const issues = defineCollection({
             }),
           )
           .default([]),
+        /** 写真がない号の皿の線画に、季節の飾りを付ける（任意） */
+        plate: z.enum(['halloween']).optional(),
         /** true の号は本番ビルドに出さない（開発サーバーでは見える） */
         draft: z.boolean().default(false),
       })

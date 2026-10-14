@@ -8,9 +8,12 @@ interface Props {
   label?: string;
   class?: string;
   idSuffix?: string;
+  /** 季節の飾り（号の frontmatter の plate） */
+  theme?: 'halloween';
 }
 
-const { menu, label = '今夜の献立', class: className } = Astro.props;
+const { menu, label = '今夜の献立', class: className, theme } = Astro.props;
+const halloween = theme === 'halloween';
 // ページ内で一意になるように、献立から決まるIDを作る（同じ献立を2回置くときは idSuffix を渡す）
 const uid = `plate-${[...JSON.stringify(menu) + label + (Astro.props.idSuffix ?? '')]
   .reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7)
@@ -18,7 +21,7 @@ const uid = `plate-${[...JSON.stringify(menu) + label + (Astro.props.idSuffix ??
 const density = menu.length >= 5 ? 'dense' : menu.length <= 2 ? 'sparse' : 'normal';
 ---
 
-<figure class:list={['plate', className]} data-density={density}>
+<figure class:list={['plate', className]} data-density={density} data-theme={theme}>
   <svg class="plate__art" viewBox="0 0 400 470" aria-hidden="true" focusable="false">
     <defs>
       <pattern id={`${uid}-dots`} width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
@@ -42,7 +45,57 @@ const density = menu.length >= 5 ? 'dense' : menu.length <= 2 ? 'sparse' : 'norm
       <path d="M44 438 L360 431 L360 437 L44 441 Z"></path>
       <path d="M44 449 L360 446 L360 452 L44 452 Z"></path>
     </g>
-    <rect x="300" y="426" width="26" height="32" rx="9" style="fill: var(--shu)" opacity="0.9"></rect>
+    {
+      halloween ? (
+        <Fragment>
+          <!-- ハロウィン：隅の蜘蛛の巣と蜘蛛 -->
+          <g style="fill: none; stroke: var(--ink)" stroke-width="0.7" stroke-linecap="round" opacity="0.75">
+            <path d="M-8 -8 L62 4 M-8 -8 L58 26 M-8 -8 L40 46 M-8 -8 L20 60 M-8 -8 L4 64"></path>
+            <path d="M15 -3 Q12 5 9 6 Q6 12 -3 13"></path>
+            <path d="M33 0 Q29 10 25 11 Q20 22 14 25 Q5 31 0 35"></path>
+            <path d="M51 2 Q46 13 43 17 Q34 31 29 36 Q17 44 13 47 Q6 52 2 55"></path>
+          </g>
+          <path d="M40 46 L40 108" style="stroke: var(--ink)" stroke-width="0.6"></path>
+          <g transform="translate(40 114)" style="fill: var(--ink)">
+            <ellipse cx="0" cy="0" rx="4.2" ry="5.2"></ellipse>
+            <circle cx="0" cy="-6.4" r="2.6"></circle>
+            <g style="fill: none; stroke: var(--ink)" stroke-width="1" stroke-linecap="round">
+              <path d="M-3 -2 Q-8 -6 -10 -2 M-3 1 Q-9 -1 -11 3 M-3 3 Q-8 4 -9 9 M-2 5 Q-5 8 -5 12"></path>
+              <path d="M3 -2 Q8 -6 10 -2 M3 1 Q9 -1 11 3 M3 3 Q8 4 9 9 M2 5 Q5 8 5 12"></path>
+            </g>
+          </g>
+          <!-- 三日月とこうもり -->
+          <path
+            transform="translate(-10 4)"
+            d="M384 14 a26 26 0 1 0 14 40 a21 21 0 1 1 -14 -40 Z"
+            style="fill: var(--shu)"
+            opacity="0.9"></path>
+          <g style="fill: var(--ink)">
+            <defs>
+              <path id={`${uid}-bat`} d="M0 -1.6 L-1.8 -5.4 L-2.4 -1.4 C-6 -6 -12 -6.6 -17 -2.4 C-13.6 -1.6 -12.6 0.8 -12.8 3 C-10.6 1.2 -8.2 1.4 -7.2 3.6 C-6 1.6 -3.6 1.4 -2 3.8 L0 5.2 L2 3.8 C3.6 1.4 6 1.6 7.2 3.6 C8.2 1.4 10.6 1.2 12.8 3 C12.6 0.8 13.6 -1.6 17 -2.4 C12 -6.6 6 -6 2.4 -1.4 L1.8 -5.4 Z"></path>
+            </defs>
+            <use href={`#${uid}-bat`} transform="translate(336 24) rotate(-8)"></use>
+            <use href={`#${uid}-bat`} transform="translate(318 50) rotate(10) scale(0.7)"></use>
+            <use href={`#${uid}-bat`} transform="translate(298 8) rotate(-14) scale(0.55)"></use>
+          </g>
+          <!-- 箸置きは、かぼちゃ -->
+          <g transform="translate(313 443)">
+            <path d="M-1.5 -13 Q-1 -18 3 -20 L4.5 -18.4 Q1.6 -16.6 1.6 -13 Z" style="fill: var(--ink)"></path>
+            <g style="fill: var(--shu); stroke: var(--ink)" stroke-width="0.9">
+              <ellipse cx="-8" cy="1" rx="9.5" ry="12.5"></ellipse>
+              <ellipse cx="8" cy="1" rx="9.5" ry="12.5"></ellipse>
+              <ellipse cx="0" cy="0.5" rx="8.5" ry="13.5"></ellipse>
+            </g>
+            <g style="fill: var(--ink)">
+              <path d="M-9 -4 L-4 -4 L-6.5 -8.5 Z M4 -4 L9 -4 L6.5 -8.5 Z M-1.6 1.2 L1.6 1.2 L0 -1.6 Z"></path>
+              <path d="M-10 4 L10 4 Q8 10.5 0 11 Q-8 10.5 -10 4 Z M-5 4 L-3 7 L-1 4 Z M1 4 L3 7 L5 4 Z" fill-rule="evenodd"></path>
+            </g>
+          </g>
+        </Fragment>
+      ) : (
+        <rect x="300" y="426" width="26" height="32" rx="9" style="fill: var(--shu)" opacity="0.9"></rect>
+      )
+    }
   </svg>
 
   <figcaption class="plate__menu">

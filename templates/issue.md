@@ -9,6 +9,7 @@ vol: __VOL__                 # 号数。フォルダ名（3桁）と同じにす
 date: __DATE__               # 開催日 YYYY-MM-DD
 genre: __GENRE__             # modern（現代人）/ past（昔の人）/ fantasy（ファンタジー）/ faith（海外の宗教）
 draft: true                  # 書き終わったら false にすると公開される
+# plate: halloween           # 写真がない号の皿の線画に季節の飾りを付ける（任意）
 
 title: ここに題（誰の、どんな晩ごはんか）
 # 表示用の改行位置（任意）。つなげると title と同じになること
