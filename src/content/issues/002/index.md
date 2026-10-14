@@ -2,7 +2,7 @@
 vol: 2
 date: 2026-10-20
 genre: past
-draft: true                  # 予告。開催して記録が集まったら false にして公開する
+draft: false
 
 title: 西暦700年ごろ、藤原京の下級役人の晩ごはん。
 titleLines:
