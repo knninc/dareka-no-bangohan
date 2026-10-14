@@ -1,6 +1,8 @@
 ---
 /**
- * 本棚。号を背表紙として並べる（新しい号が左）。
+ * 本棚。号を背表紙として並べる（古い号が左、新しい号と次号の空き棚が右）。
+ * 並びは新しい号から（読み上げ順）、見た目は row-reverse で左右を入れ替える。
+ * 横にあふれたときは、右端（新しい号）から見える。
  */
 import type { Issue } from '../lib/issues';
 import { issueUrl } from '../lib/issues';
@@ -16,21 +18,25 @@ interface Props {
 const { issues, showNext = true } = Astro.props;
 const nextVol = (issues[0]?.data.vol ?? 0) + 1;
 
-// 背の幅と高さを号数から決める（毎回同じ並びになるように）
-const size = (vol: number) => ({
-  w: 58 + ((vol * 37) % 5) * 5,
-  h: 268 + ((vol * 53) % 4) * 13,
-});
+// 背の幅を号数から決める（毎回同じ並びになるように）。高さはそろえる
+const spineWidth = (vol: number) => 58 + ((vol * 37) % 5) * 5;
 ---
 
 <div class="shelf" role="region" aria-label="背表紙の棚（横にスクロールできます）" tabindex="0">
   <ol class="shelf__row">
     {
+      showNext && (
+        <li class="spine spine--next" style={`--w:60px`} aria-hidden="true">
+          <span class="spine__vol mono">{pad3(nextVol)}</span>
+          <span class="spine__title tate">次の誰かを待っています</span>
+        </li>
+      )
+    }
+    {
       issues.map((issue) => {
         const { vol, title, genre, date } = issue.data;
-        const s = size(vol);
         return (
-          <li class="spine" data-genre={genre} style={`--w:${s.w}px; --h:${s.h}px`}>
+          <li class="spine" data-genre={genre} style={`--w:${spineWidth(vol)}px`}>
             <a href={issueUrl(issue)}>
               <span class="spine__vol mono" aria-hidden="true">
                 {pad3(vol)}
@@ -47,14 +53,6 @@ const size = (vol: number) => ({
         );
       })
     }
-    {
-      showNext && (
-        <li class="spine spine--next" style={`--w:60px; --h:268px`} aria-hidden="true">
-          <span class="spine__vol mono">{pad3(nextVol)}</span>
-          <span class="spine__title tate">次の誰かを待っています</span>
-        </li>
-      )
-    }
   </ol>
   <div class="shelf__board" aria-hidden="true"></div>
 </div>
@@ -66,6 +64,13 @@ const size = (vol: number) => ({
     padding-block-start: var(--space-4);
     scrollbar-width: thin;
     scrollbar-color: var(--paper-3) transparent;
+    --spine-h: 300px; /* 背の高さはそろえる */
+    /* 横スクロールの起点を右端（新しい号）にする。中身は ltr に戻す */
+    direction: rtl;
+  }
+
+  .shelf > * {
+    direction: ltr;
   }
 
   .shelf:focus-visible {
@@ -74,16 +79,24 @@ const size = (vol: number) => ({
 
   .shelf__row {
     display: flex;
+    flex-direction: row-reverse;
     align-items: flex-end;
     gap: 3px;
     list-style: none;
+    inline-size: max-content;
+    min-inline-size: 100%;
     min-block-size: 330px;
     padding-inline: 2px;
   }
 
+  .shelf__row > :first-child {
+    /* 冊数が少ないうちは左に寄せる（あふれたら 0 になり、右端から見える） */
+    margin-inline-end: auto;
+  }
+
   .shelf__board {
     position: sticky;
-    left: 0;
+    inset-inline: 0;
     block-size: 10px;
     border-block-start: 1.5px solid var(--ink);
     background: repeating-linear-gradient(90deg, transparent 0 6px, color-mix(in srgb, var(--ink) 14%, transparent) 6px 7px);
@@ -92,7 +105,7 @@ const size = (vol: number) => ({
   .spine {
     flex: none;
     inline-size: var(--w);
-    block-size: var(--h);
+    block-size: var(--spine-h);
   }
 
   .spine > a,
@@ -168,7 +181,7 @@ const size = (vol: number) => ({
   }
 
   .spine.spine--next {
-    block-size: var(--h);
+    block-size: var(--spine-h);
     background: transparent;
     border-style: dashed;
     border-color: color-mix(in srgb, var(--ink) 45%, transparent);
